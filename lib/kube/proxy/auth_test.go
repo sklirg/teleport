@@ -17,9 +17,14 @@ limitations under the License.
 package proxy
 
 import (
+	"bufio"
+	"bytes"
 	"context"
+	"crypto/tls"
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -125,15 +130,57 @@ func failsForCluster(clusterName string) ImpersonationPermissionsChecker {
 	}
 }
 
+func createFileWithContents(t *testing.T, contents []byte) string {
+	tmpFile, err := os.CreateTemp("", "teleport")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		os.Remove(tmpFile.Name())
+	})
+	_, err = tmpFile.Write(contents)
+	require.NoError(t, err)
+	return tmpFile.Name()
+}
+
 func TestGetKubeCreds(t *testing.T) {
 	ctx := context.TODO()
 	const teleClusterName = "teleport-cluster"
 
-	tmpFile, err := os.CreateTemp("", "teleport")
+	cert, err := utils.GenerateSelfSignedCert([]string{"localhost"})
 	require.NoError(t, err)
-	defer os.Remove(tmpFile.Name())
-	kubeconfigPath := tmpFile.Name()
-	_, err = tmpFile.Write([]byte(`
+	certFile := createFileWithContents(t, cert.Cert)
+	keyFile := createFileWithContents(t, cert.PrivateKey)
+	tlsConfig, err := utils.CreateTLSConfiguration(certFile, keyFile, utils.DefaultCipherSuites())
+	require.NoError(t, err)
+
+	kubeconfigPath := createFileWithContents(t, []byte(fmt.Sprintf(`
+apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    server: https://example.com:3026
+  name: example
+contexts:
+- context:
+    cluster: example
+    user: creds
+  name: foo
+- context:
+    cluster: example
+    user: creds
+  name: bar
+- context:
+    cluster: example
+    user: creds
+  name: baz
+users:
+- name: creds
+  user:
+    client-certificate: %s
+    client-key: %s
+current-context: foo
+`, certFile, keyFile)))
+
+	badKubeconfigPath := createFileWithContents(t, []byte(`
 apiVersion: v1
 kind: Config
 clusters:
@@ -157,8 +204,11 @@ users:
 - name: creds
 current-context: foo
 `))
-	require.NoError(t, err)
-	require.NoError(t, tmpFile.Close())
+
+	logger := utils.NewLoggerForTests()
+	buf := bytes.NewBuffer([]byte{})
+	logger.SetOutput(buf)
+	sc := bufio.NewScanner(buf)
 
 	tests := []struct {
 		desc               string
@@ -193,16 +243,19 @@ current-context: foo
 			impersonationCheck: alwaysSucceeds,
 			want: map[string]*kubeCreds{
 				"foo": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
 				},
 				"bar": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
 				},
 				"baz": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
@@ -223,6 +276,7 @@ current-context: foo
 			impersonationCheck: alwaysSucceeds,
 			want: map[string]*kubeCreds{
 				teleClusterName: {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
@@ -236,27 +290,45 @@ current-context: foo
 			impersonationCheck: failsForCluster("bar"),
 			want: map[string]*kubeCreds{
 				"foo": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
 				},
 				"bar": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
 				},
 				"baz": {
+					tlsConfig:       tlsConfig,
 					targetAddr:      "example.com:3026",
 					transportConfig: &transport.Config{},
 					kubeClient:      &kubernetes.Clientset{},
 				},
 			},
 			assertErr: require.NoError,
+		}, {
+			desc:               "kubernetes_service, bad kube creds",
+			serviceType:        KubeService,
+			kubeconfigPath:     badKubeconfigPath,
+			impersonationCheck: alwaysSucceeds,
+			assertErr: func(tt require.TestingT, err error, i ...interface{}) {
+				findErr := "failed to generate TLS config from kubeConfig. clientConfig"
+				for sc.Scan() {
+					if strings.Contains(sc.Text(), findErr) {
+						return
+					}
+				}
+				t.Fatalf("Failed to find error %q in the logs", findErr)
+			},
+			want: map[string]*kubeCreds{},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
-			got, err := getKubeCreds(ctx, utils.NewLoggerForTests(), teleClusterName, "", tt.kubeconfigPath, tt.serviceType, tt.impersonationCheck)
+			got, err := getKubeCreds(ctx, logger, teleClusterName, "", tt.kubeconfigPath, tt.serviceType, tt.impersonationCheck)
 			tt.assertErr(t, err)
 			if err != nil {
 				return
@@ -265,6 +337,7 @@ current-context: foo
 				cmp.AllowUnexported(kubeCreds{}),
 				cmp.Comparer(func(a, b *transport.Config) bool { return (a == nil) == (b == nil) }),
 				cmp.Comparer(func(a, b *kubernetes.Clientset) bool { return (a == nil) == (b == nil) }),
+				cmp.Comparer(func(a, b *tls.Config) bool { return (a == nil) == (b == nil) }),
 			))
 		})
 	}
