@@ -640,7 +640,7 @@ func Test_getUsersForDb(t *testing.T) {
 			name:     "developer allowed only specific username/database in prod database",
 			roles:    services.RoleSet{roleDevStage, roleDevProd},
 			database: dbProd,
-			result:   "[dev], except: [superuser]",
+			result:   "[dev]",
 		},
 
 		{
@@ -726,7 +726,7 @@ func Test_splitAllowDeny(t *testing.T) {
 	}
 }
 
-func Test_listAllowedDenied(t *testing.T) {
+func Test_listAllowedDeniedDbUsers(t *testing.T) {
 	type args struct {
 		set services.RoleSet
 	}
@@ -835,110 +835,12 @@ func Test_listAllowedDenied(t *testing.T) {
 		},
 	}
 
-	getEntities := func(role types.Role, conditionType types.RoleConditionType) []string {
-		return role.GetDatabaseUsers(conditionType)
-	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotAllowed, gotDenied := listAllowedDenied(tt.args.set, getEntities)
-
-			require.Equal(t, tt.wantAllowed, gotAllowed, "allowed mismatch")
-			require.Equal(t, tt.wantDenied, gotDenied, "denied mismatch")
-		})
-	}
-}
-
-func Test_listAllowedDeniedDbUsers(t *testing.T) {
-	type args struct {
-		set services.RoleSet
-	}
-
-	mkRole := func(name string, spec types.RoleSpecV5) types.Role {
-		role, err := types.NewRoleV5(name, spec)
-		if err != nil {
-			panic(err)
-		}
-		return role
-	}
-
-	allowWildcard := mkRole("allow-*", types.RoleSpecV5{
-		Allow: types.RoleConditions{
-			DatabaseUsers: []string{"*"}, // NOTE: Db *Users*
-		},
-	})
-
-	tests := []struct {
-		name        string
-		args        args
-		wantAllowed []string
-		wantDenied  []string
-	}{
-		{
-			name: "allow *",
-			args: args{
-				set: services.NewRoleSet(allowWildcard),
-			},
-			wantAllowed: []string{"*"},
-			wantDenied:  []string{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
 			gotAllowed, gotDenied := listAllowedDeniedDbUsers(tt.args.set)
 
 			require.Equal(t, tt.wantAllowed, gotAllowed, "allowed mismatch")
 			require.Equal(t, tt.wantDenied, gotDenied, "denied mismatch")
-
-		})
-	}
-}
-
-func Test_listAllowedDeniedDbNames(t *testing.T) {
-	type args struct {
-		set services.RoleSet
-	}
-
-	mkRole := func(name string, spec types.RoleSpecV5) types.Role {
-		role, err := types.NewRoleV5(name, spec)
-		if err != nil {
-			panic(err)
-		}
-		return role
-	}
-
-	allowWildcard := mkRole("allow-*", types.RoleSpecV5{
-		Allow: types.RoleConditions{
-			DatabaseNames: []string{"*"}, // NOTE: Db *Names*
-		},
-	})
-
-	tests := []struct {
-		name        string
-		args        args
-		wantAllowed []string
-		wantDenied  []string
-	}{
-		{
-			name: "allow *",
-			args: args{
-				set: services.NewRoleSet(allowWildcard),
-			},
-			wantAllowed: []string{"*"},
-			wantDenied:  []string{},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			gotAllowed, gotDenied := listAllowedDeniedDbNames(tt.args.set)
-
-			require.Equal(t, tt.wantAllowed, gotAllowed, "allowed mismatch")
-			require.Equal(t, tt.wantDenied, gotDenied, "denied mismatch")
-
 		})
 	}
 }

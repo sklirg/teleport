@@ -127,6 +127,8 @@ func getUsersForDb(roleSet services.RoleSet, database types.Database) string {
 	usersOk := make([]string, 0)
 	usersBad := make([]string, 0)
 
+	wildcardOk := false
+
 	for _, user := range allUsers {
 		err := roleSet.CheckAccess(database,
 			services.AccessMFAParams{Verified: true},
@@ -134,6 +136,9 @@ func getUsersForDb(roleSet services.RoleSet, database types.Database) string {
 
 		if err == nil {
 			usersOk = append(usersOk, user)
+			if user == types.Wildcard {
+				wildcardOk = true
+			}
 		} else {
 			if user != types.Wildcard {
 				usersBad = append(usersBad, user)
@@ -145,7 +150,7 @@ func getUsersForDb(roleSet services.RoleSet, database types.Database) string {
 		return "(none allowed)"
 	}
 
-	if len(usersBad) == 0 {
+	if len(usersBad) == 0 || (wildcardOk == false) {
 		return fmt.Sprintf("%v", usersOk)
 	}
 
@@ -171,32 +176,32 @@ func splitAllowDeny(inputMap map[string]bool) ([]string, []string) {
 	return allows, denies
 }
 
-// listAllowedDenied works on a given role set and generic entity function getter to return a minimal description of allowed set of names.
-// It is biased towards *allowed* entities (e.g. usernames); It is meant to describe what the user can do, rather than cannot do.
+// listAllowedDeniedDbUsers works on a given role set to return a minimal description of allowed set of usernames.
+// It is biased towards *allowed* usernames; It is meant to describe what the user can do, rather than cannot do.
 // For that reason if the user isn't allowed to pick *any* entities, the output will be empty.
-func listAllowedDenied(set services.RoleSet, getEntities func(role types.Role, conditionType types.RoleConditionType) []string) ([]string, []string) {
-	entities := make(map[string]bool)
+func listAllowedDeniedDbUsers(set services.RoleSet) ([]string, []string) {
+	users := make(map[string]bool)
 
 	// get allowed and denied users. denied users overwrite allowed ones.
 	for _, role := range set {
-		for _, name := range getEntities(role, types.Allow) {
-			entities[name] = true
+		for _, name := range role.GetDatabaseUsers(types.Allow) {
+			users[name] = true
 		}
 	}
 
 	for _, role := range set {
-		for _, name := range getEntities(role, types.Deny) {
-			entities[name] = false
+		for _, name := range role.GetDatabaseUsers(types.Deny) {
+			users[name] = false
 		}
 	}
 
 	// do we have a wildcard?
-	allowAll, found := entities[types.Wildcard]
+	allowAll, found := users[types.Wildcard]
 
 	if found {
 		if allowAll {
 			// allow *: all names are allowed, except for those denied. keep explicitly allowed names so user can see them.
-			return splitAllowDeny(entities)
+			return splitAllowDeny(users)
 		}
 		// deny *: nothing is allowed. return empty lists.
 		return []string{}, []string{}
@@ -204,24 +209,8 @@ func listAllowedDenied(set services.RoleSet, getEntities func(role types.Role, c
 
 	// no wildcard in either allow or deny.
 	// return users, but only the allowed ones.
-	allowed, _ := splitAllowDeny(entities)
+	allowed, _ := splitAllowDeny(users)
 	return allowed, []string{}
-}
-
-func listAllowedDeniedDbUsers(set services.RoleSet) ([]string, []string) {
-	getEntities := func(role types.Role, conditionType types.RoleConditionType) []string {
-		return role.GetDatabaseUsers(conditionType)
-	}
-
-	return listAllowedDenied(set, getEntities)
-}
-
-func listAllowedDeniedDbNames(set services.RoleSet) ([]string, []string) {
-	getEntities := func(role types.Role, conditionType types.RoleConditionType) []string {
-		return role.GetDatabaseNames(conditionType)
-	}
-
-	return listAllowedDenied(set, getEntities)
 }
 
 // onDatabaseLogin implements "tsh db login" command.
