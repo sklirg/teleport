@@ -179,7 +179,7 @@ func splitAllowDeny(inputMap map[string]bool) ([]string, []string) {
 // listAllowedDeniedDbUsers works on a given role set to return a minimal description of allowed set of usernames.
 // It is biased towards *allowed* usernames; It is meant to describe what the user can do, rather than cannot do.
 // For that reason if the user isn't allowed to pick *any* entities, the output will be empty.
-func listAllowedDeniedDbUsers(set services.RoleSet) ([]string, []string) {
+func listAllowedDeniedDbUsers(set services.RoleSet) (allowed []string, denied []string) {
 	users := make(map[string]bool)
 
 	// get allowed and denied users. denied users overwrite allowed ones.
