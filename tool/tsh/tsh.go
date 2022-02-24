@@ -1530,7 +1530,7 @@ func makeTableWithTruncatedColumn(columnOrder []string, rows [][]string, truncat
 
 func showDatabases(clusterFlag string, displayUsersForDb func(database types.Database) string, databases []types.Database, active []tlsca.RouteToDatabase, verbose bool) {
 	if verbose {
-		t := asciitable.MakeTable([]string{"Name", "Description", "Protocol", "Type", "URI", "Users", "Labels", "Connect", "Expires"})
+		t := asciitable.MakeTable([]string{"Name", "Description", "Protocol", "Type", "URI", "Allowed Users", "Labels", "Connect", "Expires"})
 		for _, database := range databases {
 			name := database.GetName()
 			var connect string
