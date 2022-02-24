@@ -472,27 +472,6 @@ func TestConfigReading(t *testing.T) {
 	checkStaticConfig(t, conf)
 }
 
-func TestReadLDAPPasswordFromFile(t *testing.T) {
-	tmp := t.TempDir()
-	passwordFile := filepath.Join(tmp, "ldap-password")
-	require.NoError(t, os.WriteFile(passwordFile, []byte(" super-secret-password\n"), 0644))
-
-	fc := FileConfig{
-		WindowsDesktop: WindowsDesktopService{
-			LDAP: LDAPConfig{
-				Addr:         "test.example.com",
-				Domain:       "example.com",
-				Username:     "admin",
-				PasswordFile: passwordFile,
-			},
-		},
-	}
-
-	var sc service.Config
-	require.NoError(t, applyWindowsDesktopConfig(&fc, &sc))
-	require.Equal(t, "super-secret-password", sc.WindowsDesktop.LDAP.Password)
-}
-
 func TestLabelParsing(t *testing.T) {
 	var conf service.SSHConfig
 	var err error
@@ -1551,10 +1530,6 @@ func TestProxyConfigurationVersion(t *testing.T) {
 func TestWindowsDesktopService(t *testing.T) {
 	t.Parallel()
 
-	tmp := t.TempDir()
-	ldapPasswordFile := filepath.Join(tmp, "ldap-pass")
-	require.NoError(t, os.WriteFile(ldapPasswordFile, []byte("foo"), 0644))
-
 	for _, test := range []struct {
 		desc        string
 		mutate      func(fc *FileConfig)
@@ -1597,15 +1572,16 @@ func TestWindowsDesktopService(t *testing.T) {
 				}
 			},
 		},
+		{
+			desc:        "NOK - uses deprecated password_file field",
+			expectError: require.Error,
+			mutate: func(fc *FileConfig) {
+				fc.WindowsDesktop.LDAP.PasswordFile = "/path/to/some/file"
+			},
+		},
 	} {
 		t.Run(test.desc, func(t *testing.T) {
-			fc := &FileConfig{
-				WindowsDesktop: WindowsDesktopService{
-					LDAP: LDAPConfig{
-						PasswordFile: ldapPasswordFile,
-					},
-				},
-			}
+			fc := &FileConfig{}
 			test.mutate(fc)
 			cfg := &service.Config{}
 			err := applyWindowsDesktopConfig(fc, cfg)
@@ -1736,23 +1712,25 @@ func TestAppsCLF(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		clf := CommandLineFlags{
-			Roles:   tt.inRoles,
-			AppName: tt.inAppName,
-			AppURI:  tt.inAppURI,
-		}
-		cfg := service.MakeDefaultConfig()
-		err := Configure(&clf, cfg)
-		if err != nil {
-			require.IsType(t, err, tt.outError, tt.desc)
-		} else {
-			require.NoError(t, err, tt.desc)
-		}
-		if tt.outError != nil {
-			continue
-		}
-		require.True(t, cfg.Apps.Enabled, tt.desc)
-		require.Len(t, cfg.Apps.Apps, 1, tt.desc)
+		t.Run(tt.desc, func(t *testing.T) {
+			clf := CommandLineFlags{
+				Roles:   tt.inRoles,
+				AppName: tt.inAppName,
+				AppURI:  tt.inAppURI,
+			}
+			cfg := service.MakeDefaultConfig()
+			err := Configure(&clf, cfg)
+			if err != nil {
+				require.IsType(t, err, tt.outError)
+			} else {
+				require.NoError(t, err)
+			}
+			if tt.outError != nil {
+				return
+			}
+			require.True(t, cfg.Apps.Enabled)
+			require.Len(t, cfg.Apps.Apps, 1)
+		})
 	}
 }
 
@@ -1991,6 +1969,34 @@ func TestDatabaseCLIFlags(t *testing.T) {
 				DynamicLabels: services.CommandLabels{},
 			},
 		},
+		{
+			desc: "SQL Server",
+			inFlags: CommandLineFlags{
+				DatabaseName:         "sqlserver",
+				DatabaseProtocol:     defaults.ProtocolSQLServer,
+				DatabaseURI:          "localhost:1433",
+				DatabaseADKeytabFile: "/etc/keytab",
+				DatabaseADDomain:     "EXAMPLE.COM",
+				DatabaseADSPN:        "MSSQLSvc/sqlserver.example.com:1433",
+			},
+			outDatabase: service.Database{
+				Name:     "sqlserver",
+				Protocol: defaults.ProtocolSQLServer,
+				URI:      "localhost:1433",
+				TLS: service.DatabaseTLS{
+					Mode: service.VerifyFull,
+				},
+				AD: service.DatabaseAD{
+					KeytabFile: "/etc/keytab",
+					Krb5File:   defaults.Krb5FilePath,
+					Domain:     "EXAMPLE.COM",
+					SPN:        "MSSQLSvc/sqlserver.example.com:1433",
+				},
+				StaticLabels: map[string]string{
+					types.OriginLabel: types.OriginConfigFile},
+				DynamicLabels: services.CommandLabels{},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
@@ -2029,7 +2035,7 @@ func TestTextFormatter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.comment, func(t *testing.T) {
-			formatter := &textFormatter{
+			formatter := &utils.TextFormatter{
 				ExtraFields: tt.formatConfig,
 			}
 			tt.assertErr(t, formatter.CheckAndSetDefaults())
@@ -2057,8 +2063,8 @@ func TestJSONFormatter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.comment, func(t *testing.T) {
-			formatter := &jsonFormatter{
-				extraFields: tt.extraFields,
+			formatter := &utils.JSONFormatter{
+				ExtraFields: tt.extraFields,
 			}
 			tt.assertErr(t, formatter.CheckAndSetDefaults())
 		})

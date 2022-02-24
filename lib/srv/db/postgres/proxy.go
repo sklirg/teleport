@@ -22,7 +22,9 @@ import (
 	"net"
 
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/srv/db/common"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/jackc/pgproto3/v2"
 
@@ -43,6 +45,8 @@ type Proxy struct {
 	Service common.Service
 	// Log is used for logging.
 	Log logrus.FieldLogger
+	// Limiter limits the number of active connections per client IP.
+	Limiter *limiter.Limiter
 }
 
 // HandleConnection accepts connection from a Postgres client, authenticates
@@ -59,11 +63,27 @@ func (p *Proxy) HandleConnection(ctx context.Context, clientConn net.Conn) (err 
 			}
 		}
 	}()
-	ctx, err = p.Middleware.WrapContextWithUser(ctx, tlsConn)
+
+	clientIP, err := utils.ClientIPFromConn(clientConn)
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	serviceConn, authContext, err := p.Service.Connect(ctx, "", "")
+
+	// Apply connection and rate limiting.
+	releaseConn, err := p.Limiter.RegisterRequestAndConnection(clientIP)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer releaseConn()
+
+	proxyCtx, err := p.Service.Authorize(ctx, tlsConn, common.ConnectParams{
+		ClientIP: clientIP,
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	serviceConn, err := p.Service.Connect(ctx, proxyCtx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -75,7 +95,7 @@ func (p *Proxy) HandleConnection(ctx context.Context, clientConn net.Conn) (err 
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	err = p.Service.Proxy(ctx, authContext, tlsConn, serviceConn)
+	err = p.Service.Proxy(ctx, proxyCtx, tlsConn, serviceConn)
 	if err != nil {
 		return trace.Wrap(err)
 	}

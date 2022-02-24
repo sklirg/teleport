@@ -18,6 +18,7 @@ package types
 
 import (
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gravitational/teleport/api/defaults"
@@ -81,6 +82,9 @@ type ResourceWithLabels interface {
 	ResourceWithOrigin
 	// GetAllLabels returns all resource's labels.
 	GetAllLabels() map[string]string
+	// MatchSearch goes through select field values of a resource
+	// and tries to match against the list of search values.
+	MatchSearch(searchValues []string) bool
 }
 
 // ResourcesWithLabels is a list of labeled resources.
@@ -104,6 +108,45 @@ func (r ResourcesWithLabels) Less(i, j int) bool { return r[i].GetName() < r[j].
 
 // Swap swaps two resources.
 func (r ResourcesWithLabels) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
+
+// AsAppServers converts each resource into type AppServer.
+func (r ResourcesWithLabels) AsAppServers() ([]AppServer, error) {
+	apps := make([]AppServer, 0, len(r))
+	for _, resource := range r {
+		app, ok := resource.(AppServer)
+		if !ok {
+			return nil, trace.BadParameter("expected types.AppServer, got: %T", resource)
+		}
+		apps = append(apps, app)
+	}
+	return apps, nil
+}
+
+// AsServers converts each resource into type Server.
+func (r ResourcesWithLabels) AsServers() ([]Server, error) {
+	servers := make([]Server, 0, len(r))
+	for _, resource := range r {
+		server, ok := resource.(Server)
+		if !ok {
+			return nil, trace.BadParameter("expected types.Server, got: %T", resource)
+		}
+		servers = append(servers, server)
+	}
+	return servers, nil
+}
+
+// AsDatabaseServers converts each resource into type DatabaseServer.
+func (r ResourcesWithLabels) AsDatabaseServers() ([]DatabaseServer, error) {
+	dbs := make([]DatabaseServer, 0, len(r))
+	for _, resource := range r {
+		db, ok := resource.(DatabaseServer)
+		if !ok {
+			return nil, trace.BadParameter("expected types.DatabaseServer, got: %T", resource)
+		}
+		dbs = append(dbs, db)
+	}
+	return dbs, nil
+}
 
 // GetVersion returns resource version
 func (h *ResourceHeader) GetVersion() string {
@@ -254,6 +297,23 @@ func (m *Metadata) CheckAndSetDefaults() error {
 	return nil
 }
 
+// MatchLabels takes a map of labels and returns `true` if the resource has ALL
+// of them.
+func MatchLabels(resource ResourceWithLabels, labels map[string]string) bool {
+	if len(labels) == 0 {
+		return true
+	}
+
+	resourceLabels := resource.GetAllLabels()
+	for name, value := range labels {
+		if resourceLabels[name] != value {
+			return false
+		}
+	}
+
+	return true
+}
+
 // LabelPattern is a regexp that describes a valid label key
 const LabelPattern = `^[a-zA-Z/.0-9_*-]+$`
 
@@ -263,4 +323,40 @@ var validLabelKey = regexp.MustCompile(LabelPattern)
 // label key regexp.
 func IsValidLabelKey(s string) bool {
 	return validLabelKey.MatchString(s)
+}
+
+// MatchSearch goes through select field values from a resource
+// and tries to match against the list of search values, ignoring case and order.
+// Returns true if all search vals were matched (or if nil search vals).
+// Returns false if no or partial match (or nil field values).
+func MatchSearch(fieldVals []string, searchVals []string, customMatch func(val string) bool) bool {
+	// Case fold all values to avoid repeated case folding while matching.
+	caseFoldedSearchVals := utils.ToLowerStrings(searchVals)
+	caseFoldedFieldVals := utils.ToLowerStrings(fieldVals)
+
+Outer:
+	for _, searchV := range caseFoldedSearchVals {
+		// Iterate through field values to look for a match.
+		for _, fieldV := range caseFoldedFieldVals {
+			if strings.Contains(fieldV, searchV) {
+				continue Outer
+			}
+		}
+
+		if customMatch != nil && customMatch(searchV) {
+			continue
+		}
+
+		// When no fields matched a value, prematurely end if we can.
+		return false
+	}
+
+	return true
+}
+
+func stringCompare(a string, b string, isDesc bool) bool {
+	if isDesc {
+		return a > b
+	}
+	return a < b
 }

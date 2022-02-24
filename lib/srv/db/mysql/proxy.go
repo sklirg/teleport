@@ -24,9 +24,11 @@ import (
 
 	"github.com/gravitational/teleport/lib/auth"
 	"github.com/gravitational/teleport/lib/defaults"
+	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/multiplexer"
 	"github.com/gravitational/teleport/lib/srv/db/common"
 	"github.com/gravitational/teleport/lib/srv/db/mysql/protocol"
+	"github.com/gravitational/teleport/lib/utils"
 
 	"github.com/siddontang/go-mysql/mysql"
 	"github.com/siddontang/go-mysql/server"
@@ -48,6 +50,8 @@ type Proxy struct {
 	Service common.Service
 	// Log is used for logging.
 	Log logrus.FieldLogger
+	// Limiter limits the number of active connections per client IP.
+	Limiter *limiter.Limiter
 }
 
 // HandleConnection accepts connection from a MySQL client, authenticates
@@ -58,7 +62,7 @@ func (p *Proxy) HandleConnection(ctx context.Context, clientConn net.Conn) (err 
 	// proxy protocol which otherwise would interfere with MySQL protocol.
 	conn := multiplexer.NewConn(clientConn)
 	server := p.makeServer(conn)
-	// If any error happens, make sure to send it back to the client so it
+	// If any error happens, make sure to send it back to the client, so it
 	// has a chance to close the connection from its side.
 	defer func() {
 		if r := recover(); r != nil {
@@ -77,11 +81,28 @@ func (p *Proxy) HandleConnection(ctx context.Context, clientConn net.Conn) (err 
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	ctx, err = p.Middleware.WrapContextWithUser(ctx, tlsConn)
+
+	clientIP, err := utils.ClientIPFromConn(clientConn)
 	if err != nil {
 		return trace.Wrap(err)
 	}
-	serviceConn, authContext, err := p.Service.Connect(ctx, server.GetUser(), server.GetDatabase())
+	// Apply connection and rate limiting.
+	releaseConn, err := p.Limiter.RegisterRequestAndConnection(clientIP)
+	if err != nil {
+		return trace.Wrap(err)
+	}
+	defer releaseConn()
+
+	proxyCtx, err := p.Service.Authorize(ctx, tlsConn, common.ConnectParams{
+		User:     server.GetUser(),
+		Database: server.GetDatabase(),
+		ClientIP: clientIP,
+	})
+	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	serviceConn, err := p.Service.Connect(ctx, proxyCtx)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -93,10 +114,9 @@ func (p *Proxy) HandleConnection(ctx context.Context, clientConn net.Conn) (err 
 	if err != nil {
 		return trace.Wrap(err)
 	}
-
 	// Auth has completed, the client enters command phase, start proxying
 	// all messages back-and-forth.
-	err = p.Service.Proxy(ctx, authContext, tlsConn, serviceConn)
+	err = p.Service.Proxy(ctx, proxyCtx, tlsConn, serviceConn)
 	if err != nil {
 		return trace.Wrap(err)
 	}
