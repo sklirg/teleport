@@ -1024,7 +1024,7 @@ steps:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -1181,7 +1181,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -1337,7 +1337,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -1491,7 +1491,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -1645,7 +1645,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -1826,7 +1826,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -2004,7 +2004,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -2171,7 +2171,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -2335,7 +2335,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -2489,7 +2489,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -2670,7 +2670,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -3362,7 +3362,7 @@ steps:
       fi
       shasum="$(cat "$file.sha256" | cut -d ' ' -f 1)"
 
-      curl $CREDENTIALS --fail -o /dev/null -F description="MacOS .pkg installer" -F os="darwin" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
+      curl $CREDENTIALS --fail -o /dev/null -F description="MacOS .pkg installer (tsh client only)" -F os="darwin" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
       for product in "$products"; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
@@ -3393,7 +3393,7 @@ steps:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -3547,7 +3547,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -3701,7 +3701,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -3868,7 +3868,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -4035,7 +4035,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -4216,7 +4216,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:426
+# Generated at dronegen/tag.go:431
 ################################################
 
 kind: pipeline
@@ -4397,7 +4397,7 @@ volumes:
 ################################################
 # Generated using dronegen, do not edit by hand!
 # Use 'make dronegen' to update.
-# Generated at dronegen/tag.go:231
+# Generated at dronegen/tag.go:236
 ################################################
 
 kind: pipeline
@@ -4521,7 +4521,7 @@ steps:
       fi
       shasum="$(cat "$file.sha256" | cut -d ' ' -f 1)"
 
-      curl $CREDENTIALS --fail -o /dev/null -F description="Windows 64-bit" -F os="windows" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
+      curl $CREDENTIALS --fail -o /dev/null -F description="Windows 64-bit (tsh client only)" -F os="windows" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
       for product in "$products"; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
@@ -5356,6 +5356,6 @@ volumes:
       name: drone-s3-debrepo-pvc
 ---
 kind: signature
-hmac: 40bb8cc2b52376a96cf08005d64d308a5944bf8389773a4cefc4fb9c38daaf78
+hmac: 59db2367470a51daab056fefb73c3054c31f235d5ea6c1e1682b60d933571942
 
 ...

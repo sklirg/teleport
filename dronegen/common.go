@@ -88,7 +88,7 @@ type buildType struct {
 }
 
 // Description provides a human-facing description of the artifact
-func (b *buildType) Description(packageType string) string {
+func (b *buildType) Description(packageType string, extraQualifications ...string) string {
 	var result string
 
 	var os string
@@ -130,6 +130,8 @@ func (b *buildType) Description(packageType string) string {
 	if b.fips {
 		qualifications = append(qualifications, "FedRAMP/FIPS")
 	}
+
+	qualifications = append(qualifications, extraQualifications...)
 
 	result = os
 
