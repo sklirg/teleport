@@ -1150,7 +1150,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit (RHEL/CentOS 7.x compatible)" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -1306,7 +1306,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit (RHEL/CentOS 7.x compatible, FedRAMP/FIPS)" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -1460,7 +1460,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -1614,7 +1614,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit (FedRAMP/FIPS)" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -1790,7 +1790,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit RPM" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -1968,7 +1968,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit RPM (FedRAMP/FIPS)" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2140,7 +2140,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit DEB" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2304,7 +2304,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 64-bit DEB (FedRAMP/FIPS)" -F os="linux" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2458,7 +2458,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 32-bit" -F os="linux" -F arch="386" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2634,7 +2634,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 32-bit RPM" -F os="linux" -F arch="386" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2806,7 +2806,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux 32-bit DEB" -F os="linux" -F arch="386" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -2984,7 +2984,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="MacOS" -F os="darwin" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -3183,7 +3183,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="MacOS .pkg installer" -F os="darwin" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -3364,7 +3364,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="MacOS .pkg installer (tsh client only)" -F os="darwin" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -3516,7 +3516,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARMv7 (32-bit)" -F os="linux" -F arch="arm" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -3670,7 +3670,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARM64/ARMv8 (64-bit)" -F os="linux" -F arch="arm64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -3837,7 +3837,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARM64/ARMv8 (64-bit) DEB" -F os="linux" -F arch="arm64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -4004,7 +4004,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARMv7 (32-bit) DEB" -F os="linux" -F arch="arm" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -4180,7 +4180,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARM64/ARMv8 (64-bit) RPM" -F os="linux" -F arch="arm64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -4361,7 +4361,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Linux ARMv7 (32-bit) RPM" -F os="linux" -F arch="arm" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -4523,7 +4523,7 @@ steps:
 
       curl $CREDENTIALS --fail -o /dev/null -F description="Windows 64-bit (tsh client only)" -F os="windows" -F arch="amd64" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
-      for product in "$products"; do
+      for product in $products; do
         status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
         if [ $status_code -ne 200 ] && [ $status_code -ne 409 ]; then
           echo "curl HTTP status: $status_code"
@@ -5356,6 +5356,6 @@ volumes:
       name: drone-s3-debrepo-pvc
 ---
 kind: signature
-hmac: 59db2367470a51daab056fefb73c3054c31f235d5ea6c1e1682b60d933571942
+hmac: ead0880409f9c13b163e10ac96d083911b50755abcb28f5fc8d53dc9f605f55f
 
 ...
