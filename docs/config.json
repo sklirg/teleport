@@ -774,10 +774,7 @@
     }
   ],
   "variables": {
-    "version": "7.0",
-    "helm": {
-      "version": "3.4.2"
-    },
+    "version": "10.0",
     "terraform": {
       "version": "0.12.0"
     },
@@ -826,14 +823,14 @@
       "dbeaver_min_ver": "8.0.3"
     },
     "teleport": {
-      "version": "7.0.0",
-      "golang": "1.16",
+      "version": "10.0.0",
+      "golang": "1.17",
       "plugin": {
-        "version": "7.0.0"
+        "version": "10.0.0"
       },
       "helm_repo_url": "https://charts.releases.teleport.dev",
-      "latest_oss_docker_image": "quay.io/gravitational/teleport:7",
-      "latest_ent_docker_image": "quay.io/gravitational/teleport-ent:7"
+      "latest_oss_docker_image": "quay.io/gravitational/teleport:10",
+      "latest_ent_docker_image": "quay.io/gravitational/teleport-ent:10"
     }
   },
   "redirects": [
