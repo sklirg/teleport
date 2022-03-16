@@ -347,7 +347,7 @@ for file in $(find . -type f ! -iname '*.sha256' ! -iname '*-unsigned.zip*'); do
   fi
   shasum="$(cat "$file.sha256" | cut -d ' ' -f 1)"
 
-  curl $CREDENTIALS --fail -o /dev/null -F description="%s" -F os="%s" -F arch="%s" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
+  curl $CREDENTIALS --fail -o /dev/null -F description="%[1]s" -F os="%[2]s" -F arch="%[3]s" -F "file=@$file" -F "sha256=$shasum" "$RELEASES_HOST/assets";
 
   for product in $products; do
     status_code=$(curl $CREDENTIALS -o "$WORKSPACE_DIR/curl_out.txt" -w "%%{http_code}" -F "product=$product" -F "version=$VERSION" -F notesMd="# Teleport $VERSION" -F status=draft "$RELEASES_HOST/releases")
