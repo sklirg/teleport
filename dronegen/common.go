@@ -87,12 +87,16 @@ type buildType struct {
 	windowsUnsigned bool
 }
 
-// Description provides a human-facing description of the artifact
+// Description provides a human-facing description of the artifact, e.g.:
+//   Windows 64-bit (tsh client only)
+//   Linux ARMv7 (32-bit)
+//   MacOS Intel .pkg installer
 func (b *buildType) Description(packageType string, extraQualifications ...string) string {
 	var result string
 
 	var os string
 	var arch string
+	var darwinArch string
 	var bitness int
 	var qualifications []string
 
@@ -110,8 +114,10 @@ func (b *buildType) Description(packageType string, extraQualifications ...strin
 	switch b.arch {
 	case "arm64":
 		arch = "ARM64/ARMv8"
-		fallthrough
+		darwinArch = "Apple Silicon"
+		bitness = 64
 	case "amd64":
+		darwinArch = "Intel"
 		bitness = 64
 
 	case "arm":
@@ -135,8 +141,10 @@ func (b *buildType) Description(packageType string, extraQualifications ...strin
 
 	result = os
 
-	if b.os != "darwin" {
-		// arch is implicit for i386/amd64
+	if b.os == "darwin" {
+		result += fmt.Sprintf(" %s", darwinArch)
+	} else {
+		// arch is implicit for Windows/Linux i386/amd64
 		if arch == "" {
 			result += fmt.Sprintf(" %d-bit", bitness)
 		} else {
