@@ -302,9 +302,11 @@ $ kubectl --namespace teleport get all
 
 ## Step 6. Set up DNS
 
-You'll need to set up two DNS `A` records: `teleport.example.com` for the web UI, and `*.teleport.example.com`
-for web apps using [application access](../../../application-access/introduction.mdx). In our example, both records are
-aliases to an ELB.
+You'll need to set up a DNS `A` record for `teleport.example.com`. In our example, this record is an alias to an ELB.
+
+<Details title="Using Application Access?">
+(!docs/pages/includes/dns-app-access.mdx!)
+</Details>
 
 Here's how to do this in a hosted zone with AWS Route 53:
 
@@ -322,7 +324,7 @@ $ MY_CLUSTER_REGION='us-west-2'
 $ MYZONE="$(aws route53 list-hosted-zones-by-name --dns-name="${MYZONE_DNS?}" | jq -r '.HostedZones[0].Id' | sed s_/hostedzone/__)"
 $ MYELB="$(kubectl --namespace "${NAMESPACE?}" get "service/${RELEASE_NAME?}" -o jsonpath='{.status.loadBalancer.ingress[*].hostname}')"
 $ MYELB_NAME="${MYELB%%-*}"
-$ MYELB_ZONE="$(aws elb describe-load-balancers --region "${MY_CLUSTER_REGION?}" --load-balancer-names "${MYELB_NAME?}" | jq -r '.LoadBalancerDescriptions[0].CanonicalHostedZoneNameID')"
+$ MYELB_ZONE="$(aws elbv2 describe-load-balancers --region "${MY_CLUSTER_REGION?}" --names "${MYELB_NAME?}" | jq -r '.LoadBalancers[0].CanonicalHostedZoneId')"
 
 # Create a JSON file changeset for AWS.
 $ jq -n --arg dns "${MYDNS?}" --arg elb "${MYELB?}" --arg elbz "${MYELB_ZONE?}" \
