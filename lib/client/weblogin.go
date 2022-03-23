@@ -17,6 +17,7 @@ limitations under the License.
 package client
 
 import (
+	"bytes"
 	"context"
 	"crypto/x509"
 	"encoding/json"
@@ -27,7 +28,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 	"time"
 
 	"github.com/gravitational/roundtrip"
@@ -459,7 +459,7 @@ func GetWebConfig(ctx context.Context, proxyAddr string, insecure bool) (*ui.Web
 	}
 
 	// WebConfig is served as JS file where GRV_CONFIG is a global object name
-	text := strings.TrimSuffix(strings.Replace(string(bytes), "var GRV_CONFIG = ", "", 1), ";")
+	text := bytes.TrimSuffix(bytes.Replace(body, []byte("var GRV_CONFIG = "), []byte(""), 1), []byte(";"))
 
 	cfg := ui.WebConfig{}
 	if err := json.Unmarshal([]byte(text), &cfg); err != nil {
