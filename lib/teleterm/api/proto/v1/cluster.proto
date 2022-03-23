@@ -70,7 +70,7 @@ message ACL {
     // kubeservers defines access to kubernetes servers.
     ResourceAccess kubeservers = 11;
     // access_requests defines access to access requests
-    ResourceAccess access_requests = 13;
+    ResourceAccess access_requests = 12;
 }
 
 // ResourceAccess describes access verbs
