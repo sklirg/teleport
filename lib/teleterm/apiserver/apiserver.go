@@ -27,7 +27,7 @@ import (
 )
 
 // New creates an instance of API Server
-func New(cfg Config) (apiServer *APIServer, err error) {
+func New(cfg Config) (*APIServer, error) {
 	if err := cfg.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
