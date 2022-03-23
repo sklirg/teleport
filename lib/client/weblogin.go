@@ -21,7 +21,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/url"
 	"os"
@@ -453,7 +453,7 @@ func GetWebConfig(ctx context.Context, proxyAddr string, insecure bool) (*ui.Web
 		return nil, trace.Wrap(err)
 	}
 
-	bytes, err := ioutil.ReadAll(response.Reader())
+	body, err := io.ReadAll(response.Reader())
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
