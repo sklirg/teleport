@@ -28,14 +28,14 @@ var pathLeafClusters = NewPath("/clusters/:cluster/leaves/:leaf/*")
 // New creates an instance of ResourceURI
 func New(path string) ResourceURI {
 	return ResourceURI{
-		Path: path,
+		path: path,
 	}
 }
 
 // NewClusterURI creates a new cluster URI for given cluster name
 func NewClusterURI(clusterName string) ResourceURI {
 	return ResourceURI{
-		Path: fmt.Sprintf("/clusters/%v", clusterName),
+		path: fmt.Sprintf("/clusters/%v", clusterName),
 	}
 }
 
@@ -60,18 +60,18 @@ func ParseClusterURI(path string) (ResourceURI, error) {
 // NewGatewayURI creates a gateway URI for a given ID
 func NewGatewayURI(id string) ResourceURI {
 	return ResourceURI{
-		Path: fmt.Sprintf("/gateways/%v", id),
+		path: fmt.Sprintf("/gateways/%v", id),
 	}
 }
 
 // ResourceURI describes resource URI
 type ResourceURI struct {
-	Path string
+	path string
 }
 
 // GetRootClusterName returns root cluster name
 func (r ResourceURI) GetRootClusterName() string {
-	result, ok := pathClusters.Match(r.Path + "/")
+	result, ok := pathClusters.Match(r.path + "/")
 	if !ok {
 		return ""
 	}
@@ -81,7 +81,7 @@ func (r ResourceURI) GetRootClusterName() string {
 
 // GetLeafClusterName returns leaf cluster name
 func (r ResourceURI) GetLeafClusterName() string {
-	result, ok := pathLeafClusters.Match(r.Path + "/")
+	result, ok := pathLeafClusters.Match(r.path + "/")
 	if !ok {
 		return ""
 	}
@@ -91,41 +91,41 @@ func (r ResourceURI) GetLeafClusterName() string {
 
 // AppendServer appends server segment to the URI
 func (r ResourceURI) AppendServer(id string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/servers/%v", r.Path, id)
+	r.path = fmt.Sprintf("%v/servers/%v", r.path, id)
 	return r
 }
 
 // AppendLeafCluster appends leaf cluster segment to the URI
 func (r ResourceURI) AppendLeafCluster(name string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/leaves/%v", r.Path, name)
+	r.path = fmt.Sprintf("%v/leaves/%v", r.path, name)
 	return r
 }
 
 // AppendKube appends kube segment to the URI
 func (r ResourceURI) AppendKube(name string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/kubes/%v", r.Path, name)
+	r.path = fmt.Sprintf("%v/kubes/%v", r.path, name)
 	return r
 }
 
 // AppendDB appends database segment to the URI
 func (r ResourceURI) AppendDB(name string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/dbs/%v", r.Path, name)
+	r.path = fmt.Sprintf("%v/dbs/%v", r.path, name)
 	return r
 }
 
 // AddGateway appends gateway segment to the URI
 func (r ResourceURI) AddGateway(id string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/gateways/%v", r.Path, id)
+	r.path = fmt.Sprintf("%v/gateways/%v", r.path, id)
 	return r
 }
 
 // AppendApp appends app segment to the URI
 func (r ResourceURI) AppendApp(name string) ResourceURI {
-	r.Path = fmt.Sprintf("%v/apps/%v", r.Path, name)
+	r.path = fmt.Sprintf("%v/apps/%v", r.path, name)
 	return r
 }
 
-// String returns string represantion of the Resource URI
+// String returns string representation of the Resource URI
 func (r ResourceURI) String() string {
-	return r.Path
+	return r.path
 }
