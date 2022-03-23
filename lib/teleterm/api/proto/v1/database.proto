@@ -24,18 +24,18 @@ import "v1/label.proto";
 message Database {
     // uri is the cluster resource URI
     string uri = 1;
-    // name is this server name
+    // name is the name of the database
     string name = 2;
-    // desc is this server cluster name
+    // desc is the database description
     string desc = 3;
-    // protocol is the database description.
+    // protocol is the protocol used by the database
     string protocol = 4;
     // type is the database type, self-hosted or cloud-hosted.
     string type = 5;
-    // hostname is this server hostname
+    // hostname is this database hostname
     string hostname = 6;
-    // addr is this server ip address
+    // addr is this database ip address
     string addr = 7;
-    // labels is this server list of labels
+    // labels is a list of labels for this database
     repeated Label labels = 8;
 }

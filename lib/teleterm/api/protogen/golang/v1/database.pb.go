@@ -47,19 +47,19 @@ type Database struct {
 
 	// uri is the cluster resource URI
 	Uri string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
-	// name is this server name
+	// name is the name of the database
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// desc is this server cluster name
+	// desc is the database description
 	Desc string `protobuf:"bytes,3,opt,name=desc,proto3" json:"desc,omitempty"`
-	// protocol is the database description.
+	// protocol is the protocol used by the database
 	Protocol string `protobuf:"bytes,4,opt,name=protocol,proto3" json:"protocol,omitempty"`
 	// type is the database type, self-hosted or cloud-hosted.
 	Type string `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
-	// hostname is this server hostname
+	// hostname is this database hostname
 	Hostname string `protobuf:"bytes,6,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	// addr is this server ip address
+	// addr is this database ip address
 	Addr string `protobuf:"bytes,7,opt,name=addr,proto3" json:"addr,omitempty"`
-	// labels is this server list of labels
+	// labels is a list of labels for this database
 	Labels []*Label `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty"`
 }
 

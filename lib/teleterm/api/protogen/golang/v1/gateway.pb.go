@@ -39,7 +39,14 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-// Gateway describes a gateway
+// Gateway is Teleterm's name for a connection to a resource like a database or a web app
+// established through our ALPN proxy.
+//
+// The term "gateway" is used to avoid using the term "proxy" itself which could be confusing as
+// "proxy" means a couple of different things depending on the context. But for Teleterm, a gateway
+// is always an ALPN proxy connection.
+//
+// See RFD 39 for more info on ALPN.
 type Gateway struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -53,9 +60,9 @@ type Gateway struct {
 	TargetUri string `protobuf:"bytes,3,opt,name=target_uri,json=targetUri,proto3" json:"target_uri,omitempty"`
 	// target_user is the target user
 	TargetUser string `protobuf:"bytes,4,opt,name=target_user,json=targetUser,proto3" json:"target_user,omitempty"`
-	// localaddress is the gateway address on localhost
+	// local_address is the gateway address on localhost
 	LocalAddress string `protobuf:"bytes,5,opt,name=local_address,json=localAddress,proto3" json:"local_address,omitempty"`
-	// localport is the gateway address on localhost
+	// local_port is the gateway address on localhost
 	LocalPort string `protobuf:"bytes,6,opt,name=local_port,json=localPort,proto3" json:"local_port,omitempty"`
 	// protocol is the gateway protocol
 	Protocol string `protobuf:"bytes,7,opt,name=protocol,proto3" json:"protocol,omitempty"`

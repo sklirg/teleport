@@ -126,7 +126,8 @@ func (x *AuthSettings) GetHasMessageOfTheDay() bool {
 	return false
 }
 
-// SSOSettings is SSO provider settings
+// AuthProvider describes a way of authentication that is supported by the server. Auth provider is
+// referred to as "auth connector" on the backend.
 type AuthProvider struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

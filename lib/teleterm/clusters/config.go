@@ -29,7 +29,7 @@ type Config struct {
 	Dir string
 	// Clock is a clock for time-related operations
 	Clock clockwork.Clock
-	// InsecureSkipVerify is an option to skip HTTPS cert check
+	// InsecureSkipVerify is an option to skip TLS cert check
 	InsecureSkipVerify bool
 	// Log is a component logger
 	Log logrus.FieldLogger

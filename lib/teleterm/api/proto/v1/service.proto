@@ -98,60 +98,42 @@ message LoginRequest {
     }
 }
 
-// AddClusterRequest describes AddClusterRequest
 message AddClusterRequest { string name = 1; }
 
-// ListKubesRequest describes ListKubesRequest
 message ListKubesRequest { string cluster_uri = 1; }
 
-// ListAppsRequest describes ListAppsRequest
 message ListAppsRequest { string cluster_uri = 1; }
 
-// ListClustersRequest describes ListClustersRequest
 message ListClustersRequest {}
 
-// ListClustersResponse describes ListClustersResponse
 message ListClustersResponse { repeated Cluster clusters = 1; }
 
-// ListDatabasesRequest describes ListDatabasesRequest
 message ListDatabasesRequest { string cluster_uri = 1; }
 
-// ListLeafClustersRequest describes ListLeafClustersRequest
 message ListLeafClustersRequest { string cluster_uri = 1; }
 
-// ListDatabasesResponse describes ListDatabasesResponse
 message ListDatabasesResponse { repeated Database databases = 1; }
 
-// CreateGatewayRequest describes CreateGatewayRequest
 message CreateGatewayRequest {
     string target_uri = 1;
     string target_user = 2;
     string local_port = 3;
 }
 
-// ListGatewaysRequest describes ListGatewaysRequest
 message ListGatewaysRequest { repeated string cluster_ids = 1; }
 
-// ListGatewaysResponse describes ListGatewaysResponse
 message ListGatewaysResponse { repeated Gateway gateways = 1; }
 
-// RemoveGatewayRequest describes RemoveGatewayRequest
 message RemoveGatewayRequest { string gateway_uri = 1; }
 
-// ListServersRequest describes ListServersRequest
 message ListServersRequest { string cluster_uri = 1; }
 
-// ListServersResponse describes ListServersResponse
 message ListServersResponse { repeated Server servers = 1; }
 
-// ListKubesResponse describes ListKubesResponse
 message ListKubesResponse { repeated Kube kubes = 1; }
 
-// ListAppsResponse describes ListAppsResponse
 message ListAppsResponse { repeated App apps = 1; }
 
-// GetAuthSettingsRequest describes GetAuthSettingsRequest
 message GetAuthSettingsRequest { string cluster_uri = 1; }
 
-// EmptyResponse describes EmptyResponse
 message EmptyResponse {}

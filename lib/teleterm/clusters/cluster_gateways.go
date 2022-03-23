@@ -26,7 +26,6 @@ import (
 
 type Gateway = gateway.Gateway
 
-// CreateGatewayParams describes create gateway parameters
 type CreateGatewayParams struct {
 	// TargetURI is the cluster resource URI
 	TargetURI string

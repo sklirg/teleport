@@ -49,7 +49,8 @@ type Cluster struct {
 	Uri string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
 	// name is the cluster name
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	// connected indicates if connection to the cluster has been established
+	// connected indicates if connection to the cluster can be established, that is if we have a
+	// cert for the cluster that hasn't expired
 	Connected bool `protobuf:"varint,3,opt,name=connected,proto3" json:"connected,omitempty"`
 	// leaf indicates if this is a leaf cluster
 	Leaf bool `protobuf:"varint,4,opt,name=leaf,proto3" json:"leaf,omitempty"`
@@ -210,17 +211,17 @@ type ACL struct {
 	Sessions *ResourceAccess `protobuf:"bytes,1,opt,name=sessions,proto3" json:"sessions,omitempty"`
 	// auth_connectors defines access to auth.connectors
 	AuthConnectors *ResourceAccess `protobuf:"bytes,2,opt,name=auth_connectors,json=authConnectors,proto3" json:"auth_connectors,omitempty"`
-	// Roles roles access to roles
+	// Roles defines access to roles
 	Roles *ResourceAccess `protobuf:"bytes,3,opt,name=roles,proto3" json:"roles,omitempty"`
-	// Users users access to users.
+	// Users defines access to users.
 	Users *ResourceAccess `protobuf:"bytes,4,opt,name=users,proto3" json:"users,omitempty"`
 	// trusted_clusters defines access to trusted clusters
 	TrustedClusters *ResourceAccess `protobuf:"bytes,5,opt,name=trusted_clusters,json=trustedClusters,proto3" json:"trusted_clusters,omitempty"`
-	// Events events access to audit logs
+	// Events defines access to audit logs
 	Events *ResourceAccess `protobuf:"bytes,6,opt,name=events,proto3" json:"events,omitempty"`
-	// Tokens tokens access to tokens.
+	// Tokens defines access to tokens.
 	Tokens *ResourceAccess `protobuf:"bytes,7,opt,name=tokens,proto3" json:"tokens,omitempty"`
-	// Servers servers access to servers.
+	// Servers defines access to servers.
 	Servers *ResourceAccess `protobuf:"bytes,8,opt,name=servers,proto3" json:"servers,omitempty"`
 	// apps defines access to application servers
 	Apps *ResourceAccess `protobuf:"bytes,9,opt,name=apps,proto3" json:"apps,omitempty"`

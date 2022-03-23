@@ -39,21 +39,21 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
-// App describes connected AAP Application
+// App describes connected Application
 type App struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// uri is the kube resource URI
+	// uri is the app resource URI
 	Uri string `protobuf:"bytes,1,opt,name=uri,proto3" json:"uri,omitempty"`
-	// name is the kube name
+	// name is the app name
 	Name string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	// description is the app description.
 	Description string `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// uri is the internal address the application is available at.
 	AppUri string `protobuf:"bytes,4,opt,name=app_uri,json=appUri,proto3" json:"app_uri,omitempty"`
-	// publicaddr is the public address the application is accessible at.
+	// public_addr is the public address the application is accessible at.
 	PublicAddr string `protobuf:"bytes,5,opt,name=public_addr,json=publicAddr,proto3" json:"public_addr,omitempty"`
 	// fqdn is a fully qualified domain name of the application (app.example.com)
 	Fqdn string `protobuf:"bytes,6,opt,name=fqdn,proto3" json:"fqdn,omitempty"`

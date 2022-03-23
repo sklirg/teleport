@@ -24,7 +24,8 @@ message Cluster {
     string uri = 1;
     // name is the cluster name
     string name = 2;
-    // connected indicates if connection to the cluster has been established
+    // connected indicates if connection to the cluster can be established, that is if we have a
+    // cert for the cluster that hasn't expired
     bool connected = 3;
     // leaf indicates if this is a leaf cluster
     bool leaf = 4;
@@ -50,17 +51,17 @@ message ACL {
     ResourceAccess sessions = 1;
     // auth_connectors defines access to auth.connectors
     ResourceAccess auth_connectors = 2;
-    // Roles roles access to roles
+    // Roles defines access to roles
     ResourceAccess roles = 3;
-    // Users users access to users.
+    // Users defines access to users.
     ResourceAccess users = 4;
     // trusted_clusters defines access to trusted clusters
     ResourceAccess trusted_clusters = 5;
-    // Events events access to audit logs
+    // Events defines access to audit logs
     ResourceAccess events = 6;
-    // Tokens tokens access to tokens.
+    // Tokens defines access to tokens.
     ResourceAccess tokens = 7;
-    // Servers servers access to servers.
+    // Servers defines access to servers.
     ResourceAccess servers = 8;
     // apps defines access to application servers
     ResourceAccess apps = 9;

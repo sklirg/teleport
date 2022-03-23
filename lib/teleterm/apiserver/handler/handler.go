@@ -32,7 +32,7 @@ func New(cfg Config) (*Handler, error) {
 	}, nil
 }
 
-// Config is the terminal service
+// Config is the terminal service configuration
 type Config struct {
 	// DaemonService is the instance of daemon service
 	DaemonService *daemon.Service

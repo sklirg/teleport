@@ -34,7 +34,8 @@ message AuthSettings {
     bool has_message_of_the_day = 5;
 }
 
-// SSOSettings is SSO provider settings
+// AuthProvider describes a way of authentication that is supported by the server. Auth provider is
+// referred to as "auth connector" on the backend.
 message AuthProvider {
     // Type is the auth provider type (github|oidc|etc)
     string type = 1;

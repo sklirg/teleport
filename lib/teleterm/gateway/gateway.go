@@ -114,7 +114,6 @@ func (g *Gateway) Open() {
 
 // Gateway describes local proxy that creates a gateway to the remote Teleport resource.
 type Gateway struct {
-	// GatewayParams is the gateway parameters
 	Config
 
 	localProxy *alpn.LocalProxy

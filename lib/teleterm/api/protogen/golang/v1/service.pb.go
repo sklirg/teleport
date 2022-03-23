@@ -255,7 +255,6 @@ func (x *LoginRequest) GetSso() *LoginRequest_SsoParams {
 	return nil
 }
 
-// AddClusterRequest describes AddClusterRequest
 type AddClusterRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -303,7 +302,6 @@ func (x *AddClusterRequest) GetName() string {
 	return ""
 }
 
-// ListKubesRequest describes ListKubesRequest
 type ListKubesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -351,7 +349,6 @@ func (x *ListKubesRequest) GetClusterUri() string {
 	return ""
 }
 
-// ListAppsRequest describes ListAppsRequest
 type ListAppsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -399,7 +396,6 @@ func (x *ListAppsRequest) GetClusterUri() string {
 	return ""
 }
 
-// ListClustersRequest describes ListClustersRequest
 type ListClustersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -438,7 +434,6 @@ func (*ListClustersRequest) Descriptor() ([]byte, []int) {
 	return file_v1_service_proto_rawDescGZIP(), []int{7}
 }
 
-// ListClustersResponse describes ListClustersResponse
 type ListClustersResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -486,7 +481,6 @@ func (x *ListClustersResponse) GetClusters() []*Cluster {
 	return nil
 }
 
-// ListDatabasesRequest describes ListDatabasesRequest
 type ListDatabasesRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -534,7 +528,6 @@ func (x *ListDatabasesRequest) GetClusterUri() string {
 	return ""
 }
 
-// ListLeafClustersRequest describes ListLeafClustersRequest
 type ListLeafClustersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -582,7 +575,6 @@ func (x *ListLeafClustersRequest) GetClusterUri() string {
 	return ""
 }
 
-// ListDatabasesResponse describes ListDatabasesResponse
 type ListDatabasesResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -630,7 +622,6 @@ func (x *ListDatabasesResponse) GetDatabases() []*Database {
 	return nil
 }
 
-// CreateGatewayRequest describes CreateGatewayRequest
 type CreateGatewayRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -694,7 +685,6 @@ func (x *CreateGatewayRequest) GetLocalPort() string {
 	return ""
 }
 
-// ListGatewaysRequest describes ListGatewaysRequest
 type ListGatewaysRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -742,7 +732,6 @@ func (x *ListGatewaysRequest) GetClusterIds() []string {
 	return nil
 }
 
-// ListGatewaysResponse describes ListGatewaysResponse
 type ListGatewaysResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -790,7 +779,6 @@ func (x *ListGatewaysResponse) GetGateways() []*Gateway {
 	return nil
 }
 
-// RemoveGatewayRequest describes RemoveGatewayRequest
 type RemoveGatewayRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -838,7 +826,6 @@ func (x *RemoveGatewayRequest) GetGatewayUri() string {
 	return ""
 }
 
-// ListServersRequest describes ListServersRequest
 type ListServersRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -886,7 +873,6 @@ func (x *ListServersRequest) GetClusterUri() string {
 	return ""
 }
 
-// ListServersResponse describes ListServersResponse
 type ListServersResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -934,7 +920,6 @@ func (x *ListServersResponse) GetServers() []*Server {
 	return nil
 }
 
-// ListKubesResponse describes ListKubesResponse
 type ListKubesResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -982,7 +967,6 @@ func (x *ListKubesResponse) GetKubes() []*Kube {
 	return nil
 }
 
-// ListAppsResponse describes ListAppsResponse
 type ListAppsResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1030,7 +1014,6 @@ func (x *ListAppsResponse) GetApps() []*App {
 	return nil
 }
 
-// GetAuthSettingsRequest describes GetAuthSettingsRequest
 type GetAuthSettingsRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -1078,7 +1061,6 @@ func (x *GetAuthSettingsRequest) GetClusterUri() string {
 	return ""
 }
 
-// EmptyResponse describes EmptyResponse
 type EmptyResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
