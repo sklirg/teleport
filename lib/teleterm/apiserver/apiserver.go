@@ -16,7 +16,7 @@ package apiserver
 
 import (
 	"net"
-	"strings"
+	"net/url"
 
 	api "github.com/gravitational/teleport/lib/teleterm/api/protogen/golang/v1"
 	"github.com/gravitational/teleport/lib/teleterm/apiserver/handler"
@@ -65,19 +65,18 @@ func (s *APIServer) Stop() {
 	s.grpcServer.GracefulStop()
 }
 
-func newListener(host string) (net.Listener, error) {
-	var network, addr string
+func newListener(hostAddr string) (net.Listener, error) {
+	uri, err := url.Parse(hostAddr)
 
-	parts := strings.SplitN(host, "://", 2)
-	network = parts[0]
-	switch network {
-	case "unix":
-		addr = parts[1]
-	default:
-		return nil, trace.BadParameter("invalid unix socket address: %s", network)
+	if err != nil {
+		return nil, trace.BadParameter("invalid host address: %s", hostAddr)
 	}
 
-	lis, err := net.Listen(network, addr)
+	if uri.Scheme != "unix" {
+		return nil, trace.BadParameter("invalid unix socket address: %s", hostAddr)
+	}
+
+	lis, err := net.Listen(uri.Scheme, uri.Path)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
