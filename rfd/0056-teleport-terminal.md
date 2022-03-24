@@ -32,8 +32,8 @@ This API is used by `teleterm` to call `tsh` internal methods to access Teleport
 This makes `tsh` as `teleterm` backend service that stores information about clusters and retrieved certificates.
 
 #### gRPC API
-`tsh` gRPC API allows programmatic access to `tsh` functionality. This includes logging into a cluster, creating a local proxy (alpn), k8s, and
-desktop access. It uses unix-sockets as the primary communication channel. Unix Sockets are now broadly supported as Microsoft added Unix Sockets support to Windows (Windows 10 Version 1803).
+`tsh` gRPC API allows programmatic access to `tsh` functionality. This includes logging into a cluster, k8s, and creating a local proxy (alpn).
+It uses unix-sockets as the primary communication channel. Unix Sockets are now broadly supported as Microsoft added Unix Sockets support to Windows (Windows 10 Version 1803).
 On systems where Unix Sockets are not supported, `tsh` can establish a localhost TLS/TCP connection where TLS certificates are re-generated at start-time by `teleterm`.
 Only unix-sockets are supported at this time.
 
