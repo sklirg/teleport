@@ -151,12 +151,12 @@ func (muk *Key) SetPasswordless() {
 	muk.SetUV = true                    // UV required for passwordless.
 }
 
-func (muk *Key) RegisterResponse(req *u2f.RegisterRequest) (*u2f.RegisterResponse, error) {
+func (muk *Key) RegisterResponse(req *u2f.WebRegisterRequest) (*u2f.RegisterResponse, error) {
 	appIDHash := sha256.Sum256([]byte(req.AppID))
 
 	clientData := u2f.ClientData{
 		Typ:       "navigator.id.finishEnrollment",
-		Challenge: req.Challenge,
+		Challenge: req.RegisterRequests[0].Challenge,
 		Origin:    req.AppID,
 	}
 	clientDataJSON, err := json.Marshal(clientData)
@@ -229,8 +229,8 @@ func (muk *Key) signRegister(appIDHash, clientDataHash []byte) (*signRegisterRes
 	}, nil
 }
 
-func (muk *Key) SignResponse(req *u2f.SignRequest) (*u2f.SignResponse, error) {
-	rawKeyHandle, err := decodeBase64(req.KeyHandle)
+func (muk *Key) SignResponse(req *u2f.WebSignRequest) (*u2f.SignResponse, error) {
+	rawKeyHandle, err := decodeBase64(req.RegisteredKeys[0].KeyHandle)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -256,7 +256,7 @@ func (muk *Key) SignResponse(req *u2f.SignRequest) (*u2f.SignResponse, error) {
 	}
 
 	return &u2f.SignResponse{
-		KeyHandle:     req.KeyHandle,
+		KeyHandle:     req.RegisteredKeys[0].KeyHandle,
 		SignatureData: encodeBase64(res.SignData),
 		ClientData:    encodeBase64(clientDataJSON),
 	}, nil

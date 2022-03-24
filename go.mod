@@ -23,7 +23,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.16.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.7.0
 	github.com/beevik/etree v1.1.0
-	github.com/coreos/go-oidc v0.0.4
+	github.com/coreos/go-oidc v0.0.0-20171020180921-e860bd55bfa7
 	github.com/coreos/go-semver v0.3.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/denisenkom/go-mssqldb v0.11.0
@@ -73,20 +73,20 @@ require (
 	github.com/mailgun/lemma v0.0.0-20170619173223-4214099fb348
 	github.com/mailgun/timetools v0.0.0-20170619190023-f3a7b8ffff47
 	github.com/mailgun/ttlmap v0.0.0-20170619185759-c1c17f74874f
-	github.com/mattn/go-sqlite3 v1.14.6
-	github.com/moby/term v0.0.0-20210610120745-9d4ed1856297
+	github.com/mattn/go-sqlite3 v1.14.12
+	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/pkg/errors v0.9.1
 	github.com/pquerna/otp v1.3.0
-	github.com/prometheus/client_golang v1.11.0
+	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.28.0
-	github.com/russellhaering/gosaml2 v0.6.1-0.20210916051624-757d23f1bc28
+	github.com/prometheus/common v0.32.1
+	github.com/russellhaering/gosaml2 v0.7.0
 	github.com/russellhaering/goxmldsig v1.1.1
 	github.com/sethvargo/go-diceware v0.2.1
 	github.com/siddontang/go-mysql v1.1.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
-	github.com/tstranex/u2f v0.0.0-20160508205855-eb799ce68da4
+	github.com/tstranex/u2f v1.0.0
 	github.com/vulcand/predicate v1.2.0
 	go.etcd.io/etcd/api/v3 v3.5.1
 	go.etcd.io/etcd/client/v3 v3.5.1
@@ -111,7 +111,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.23.3
-	k8s.io/apimachinery v0.23.3
+	k8s.io/apimachinery v0.23.5
 	k8s.io/cli-runtime v0.23.3
 	k8s.io/client-go v0.23.3
 	k8s.io/kubectl v0.23.3
@@ -131,9 +131,6 @@ require (
 	github.com/MakeNowJust/heredoc v0.0.0-20170808103936-bb23615498cd // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38 // indirect
-	github.com/alecthomas/colour v0.1.0 // indirect
-	github.com/alecthomas/repr v0.0.0-20200325044227-4184120f674c // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
@@ -199,7 +196,6 @@ require (
 	github.com/mailgun/minheap v0.0.0-20170619185613-3dbe6c6bf55f // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/mdp/rsc v0.0.0-20160131164516-90f07065088d // indirect
@@ -215,7 +211,7 @@ require (
 	github.com/pingcap/errors v0.11.0 // indirect
 	github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/procfs v0.6.0 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/russross/blackfriday v1.5.2 // indirect
@@ -253,7 +249,6 @@ require (
 	k8s.io/klog/v2 v2.30.0 // indirect
 	k8s.io/kube-openapi v0.0.0-20211115234752-e816edb12b65 // indirect
 	k8s.io/utils v0.0.0-20211116205334-6203023598ed // indirect
-	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 	sigs.k8s.io/json v0.0.0-20211020170558-c049b76a60c6 // indirect
 	sigs.k8s.io/kustomize/api v0.10.1 // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.0 // indirect
