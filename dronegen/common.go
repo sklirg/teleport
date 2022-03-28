@@ -108,7 +108,7 @@ func (b *buildType) Description(packageType string, extraQualifications ...strin
 	case "windows":
 		os = "Windows"
 	default:
-		panic("unhandled OS")
+		panic(fmt.Sprintf("unhandled OS: %s", b.os))
 	}
 
 	switch b.arch {
@@ -127,7 +127,7 @@ func (b *buildType) Description(packageType string, extraQualifications ...strin
 		bitness = 32
 
 	default:
-		panic("unhandled arch")
+		panic(fmt.Sprintf("unhandled arch: %s", b.arch))
 	}
 
 	if b.centos7 {
