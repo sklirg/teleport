@@ -614,6 +614,10 @@ func applyAuthConfig(fc *FileConfig, cfg *service.Config) error {
 		}
 	}
 
+	if fc.Auth.OptionalMetrics != nil {
+		cfg.Auth.OptionalMetrics = fc.Auth.OptionalMetrics
+	}
+
 	return nil
 }
 
@@ -850,6 +854,9 @@ func applyProxyConfig(fc *FileConfig, cfg *service.Config) error {
 	}
 	cfg.Proxy.ACME = *acme
 
+	if fc.Proxy.OptionalMetrics != nil {
+		cfg.Proxy.OptionalMetrics = fc.Proxy.OptionalMetrics
+	}
 	applyDefaultProxyListenerAddresses(cfg)
 
 	return nil
