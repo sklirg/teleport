@@ -130,48 +130,19 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 		clusterLeafName = pack.leaf.cluster.Secrets.SiteName
 	)
 
+	pw := phaseWatcher{
+		clusterRootName: clusterRootName,
+		pollingPeriod:   rootCluster.Process.Config.PollingPeriod,
+		clock:           pack.clock,
+		siteAPI:         rootCluster.GetSiteAPI(clusterLeafName),
+		certType:        types.DatabaseCA,
+	}
+
 	currentDbCA, err := pack.root.dbAuthClient.GetCertAuthority(ctx, types.CertAuthID{
 		Type:       types.DatabaseCA,
 		DomainName: clusterRootName,
 	}, false)
 	require.NoError(t, err)
-
-	// waitForPhase waits until rootCluster cluster detects the rotation
-	waitForPhase := func(phase string) error {
-		ctx, cancel := context.WithTimeout(context.Background(), rootCluster.Process.Config.PollingPeriod*3)
-		defer cancel()
-
-		watcher, err := services.NewCertAuthorityWatcher(ctx, services.CertAuthorityWatcherConfig{
-			ResourceWatcherConfig: services.ResourceWatcherConfig{
-				Component: teleport.ComponentProxy,
-				Clock:     pack.clock,
-				Client:    rootCluster.GetSiteAPI(clusterLeafName),
-			},
-			WatchDatabaseCA: true,
-		})
-		if err != nil {
-			return err
-		}
-		defer watcher.Close()
-
-		var lastPhase string
-		for i := 0; i < 10; i++ {
-			select {
-			case <-ctx.Done():
-				return trace.CompareFailed("failed to converge to phase %q, last phase %q", phase, lastPhase)
-			case cas := <-watcher.CertAuthorityC:
-				for _, ca := range cas {
-					if ca.GetClusterName() == clusterRootName &&
-						ca.GetType() == types.DatabaseCA &&
-						ca.GetRotation().Phase == phase {
-						return nil
-					}
-					lastPhase = ca.GetRotation().Phase
-				}
-			}
-		}
-		return trace.CompareFailed("failed to converge to phase %q, last phase %q", phase, lastPhase)
-	}
 
 	err = authServer.RotateCertAuthority(ctx, auth.RotateRequest{
 		Type:        types.DatabaseCA,
@@ -180,7 +151,7 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = waitForPhase(types.RotationPhaseInit)
+	err = pw.waitForPhase(types.RotationPhaseInit)
 	require.NoError(t, err)
 
 	err = authServer.RotateCertAuthority(ctx, auth.RotateRequest{
@@ -190,7 +161,7 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = waitForPhase(types.RotationPhaseUpdateClients)
+	err = pw.waitForPhase(types.RotationPhaseUpdateClients)
 	require.NoError(t, err)
 
 	err = authServer.RotateCertAuthority(ctx, auth.RotateRequest{
@@ -200,7 +171,7 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = waitForPhase(types.RotationPhaseUpdateServers)
+	err = pw.waitForPhase(types.RotationPhaseUpdateServers)
 	require.NoError(t, err)
 
 	err = authServer.RotateCertAuthority(ctx, auth.RotateRequest{
@@ -210,7 +181,7 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = waitForPhase(types.RotationStateStandby)
+	err = pw.waitForPhase(types.RotationStateStandby)
 	require.NoError(t, err)
 
 	rotatedDbCA, err := pack.root.dbAuthClient.GetCertAuthority(ctx, types.CertAuthID{
@@ -248,6 +219,51 @@ func TestDatabaseRotateTrustedCluster(t *testing.T) {
 	// Disconnect.
 	err = dbClient.Close(context.Background())
 	require.NoError(t, err)
+}
+
+type phaseWatcher struct {
+	clusterRootName string
+	pollingPeriod   time.Duration
+	clock           clockwork.Clock
+	siteAPI         types.Events
+	certType        types.CertAuthType
+}
+
+// waitForPhase waits until rootCluster cluster detects the rotation
+func (p *phaseWatcher) waitForPhase(phase string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), p.pollingPeriod*3)
+	defer cancel()
+
+	watcher, err := services.NewCertAuthorityWatcher(ctx, services.CertAuthorityWatcherConfig{
+		ResourceWatcherConfig: services.ResourceWatcherConfig{
+			Component: teleport.ComponentProxy,
+			Clock:     p.clock,
+			Client:    p.siteAPI,
+		},
+		CertTypes: []types.CertAuthType{types.DatabaseCA},
+	})
+	if err != nil {
+		return err
+	}
+	defer watcher.Close()
+
+	var lastPhase string
+	for i := 0; i < 10; i++ {
+		select {
+		case <-ctx.Done():
+			return trace.CompareFailed("failed to converge to phase %q, last phase %q", phase, lastPhase)
+		case cas := <-watcher.CertAuthorityC:
+			for _, ca := range cas {
+				if ca.GetClusterName() == p.clusterRootName &&
+					ca.GetType() == p.certType &&
+					ca.GetRotation().Phase == phase {
+					return nil
+				}
+				lastPhase = ca.GetRotation().Phase
+			}
+		}
+	}
+	return trace.CompareFailed("failed to converge to phase %q, last phase %q", phase, lastPhase)
 }
 
 // TestDatabaseAccessMySQLRootCluster tests a scenario where a user connects
