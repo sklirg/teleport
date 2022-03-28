@@ -296,6 +296,10 @@ type CLIConf struct {
 
 	// Passwordless instructs tsh to do passwordless login.
 	Passwordless bool
+	// PasswordlessUser is the user for passwordless login.
+	// It is the same as Username if the latter was explicitly set, otherwise it
+	// is empty.
+	PasswordlessUser string
 
 	// displayParticipantRequirements is set if verbose participant requirement information should be printed for moderated sessions.
 	displayParticipantRequirements bool
@@ -643,6 +647,8 @@ func Run(args []string, opts ...cliOption) error {
 		app.Usage(args)
 		return trace.Wrap(err)
 	}
+	// Copy from Username before the latter has a chance to change.
+	cf.PasswordlessUser = cf.Username
 
 	// apply any options after parsing of arguments to ensure
 	// that defaults don't overwrite options.
@@ -1982,6 +1988,7 @@ func makeClient(cf *CLIConf, useProfileLogin bool) (*client.TeleportClient, erro
 		c.Username = cf.Username
 	}
 	c.Passwordless = cf.Passwordless
+	c.PasswordlessUser = cf.PasswordlessUser
 	// if proxy is set, and proxy is not equal to profile's
 	// loaded addresses, override the values
 	if err := setClientWebProxyAddr(cf, c); err != nil {

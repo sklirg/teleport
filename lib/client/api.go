@@ -366,6 +366,9 @@ type Config struct {
 	// Affects the TeleportClient.Login and, indirectly, RetryWithRelogin
 	// functions.
 	Passwordless bool
+	// PasswordlessUser is the user for passwordless logins.
+	// Empty means "authenticator choice".
+	PasswordlessUser string
 }
 
 // CachePolicy defines cache policy for local clients
@@ -2620,7 +2623,7 @@ func (tc *TeleportClient) pwdlessLogin(ctx context.Context, pubKey []byte) (*aut
 	}
 
 	prompt := wancli.NewDefaultPrompt(ctx, tc.Stderr)
-	mfaResp, _, err := promptWebauthn(ctx, webURL.String(), tc.Username, challenge.WebauthnChallenge, prompt)
+	mfaResp, _, err := promptWebauthn(ctx, webURL.String(), tc.PasswordlessUser, challenge.WebauthnChallenge, prompt)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
