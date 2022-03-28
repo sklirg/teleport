@@ -412,9 +412,6 @@ type ProxyConfig struct {
 
 	// DisableALPNSNIListener allows turning off the ALPN Proxy listener. Used in tests.
 	DisableALPNSNIListener bool
-
-	// OptionalMetrics are metrics that can be toggled and are disabled by default
-	OptionalMetrics *ProxyOptionalMetrics
 }
 
 // ACME configures ACME automatic certificate renewal
@@ -433,13 +430,6 @@ type KeyPairPath struct {
 	PrivateKey string
 	// Certificate is the path to a PEM encoded certificate.
 	Certificate string
-}
-
-// ProxyOptionalMetrics stores metrics that can be toggled. These are usually metrics that tend to be high
-// in cardinality and disabled by default
-type ProxyOptionalMetrics struct {
-	// GRPCClientLatency enables histogram metrics for each grpc endpoint on the auth server
-	GRPCClientLatency bool `yaml:"grpc_client_latency,omitempty"`
 }
 
 // KubeAddr returns the address for the Kubernetes endpoint on this proxy that
@@ -548,16 +538,6 @@ type AuthConfig struct {
 
 	// KeyStore configuration. Handles CA private keys which may be held in a HSM.
 	KeyStore keystore.Config
-
-	// OptionalMetrics are metrics that can be toggled and are disabled by default
-	OptionalMetrics *AuthOptionalMetrics
-}
-
-// AuthOptionalMetrics stores metrics that can be toggled. These are usually metrics that tend to be high
-// in cardinality and disabled by default
-type AuthOptionalMetrics struct {
-	// GRPCServerLatency enables histogram metrics for each grpc endpoint on the auth server
-	GRPCServerLatency bool `yaml:"grpc_server_latency,omitempty"`
 }
 
 // SSHConfig configures SSH server node role
@@ -966,6 +946,19 @@ type MetricsConfig struct {
 	// use for mTLS.
 	// Used in conjunction with MTLS = true
 	CACerts []string
+
+	// OptionalMetrics are metrics that are off by default but can be enabled
+	OptionalMetrics *OptionalMetrics
+}
+
+// OptionalMetrics stores metrics that can be toggled. These are usually metrics that tend to be high
+// in cardinality and disabled by default
+type OptionalMetrics struct {
+	// GRPCServerLatency enables histogram metrics for each grpc endpoint on the auth server
+	GRPCServerLatency bool `yaml:"grpc_server_latency,omitempty"`
+
+	// GRPCServerLatency enables histogram metrics for each grpc endpoint on the auth server
+	GRPCClientLatency bool `yaml:"grpc_client_latency,omitempty"`
 }
 
 // WindowsDesktopConfig specifies the configuration for the Windows Desktop
@@ -1146,13 +1139,11 @@ func ApplyDefaults(cfg *Config) {
 	cfg.Auth.Preference = types.DefaultAuthPreference()
 	defaults.ConfigureLimiter(&cfg.Auth.Limiter)
 	cfg.Auth.LicenseFile = filepath.Join(cfg.DataDir, defaults.LicenseFile)
-	cfg.Auth.OptionalMetrics = &AuthOptionalMetrics{}
 
 	cfg.Proxy.WebAddr = *defaults.ProxyWebListenAddr()
 	// Proxy service defaults.
 	cfg.Proxy.Enabled = true
 	cfg.Proxy.Kube.Enabled = false
-	cfg.Proxy.OptionalMetrics = &ProxyOptionalMetrics{}
 
 	defaults.ConfigureLimiter(&cfg.Proxy.Limiter)
 
@@ -1178,6 +1169,7 @@ func ApplyDefaults(cfg *Config) {
 
 	// Metrics service defaults.
 	cfg.Metrics.Enabled = false
+	cfg.Metrics.OptionalMetrics = &OptionalMetrics{}
 
 	// Windows desktop service is disabled by default.
 	cfg.WindowsDesktop.Enabled = false
