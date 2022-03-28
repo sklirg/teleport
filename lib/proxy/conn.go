@@ -23,6 +23,7 @@ import (
 
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/trace"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -153,7 +154,9 @@ func (c *streamConn) Close() error {
 func (c *streamConn) close() error {
 	localErr := c.local.Close()
 	remoteErr := c.remote.Close()
-
+	if stream, ok := c.stream.(grpc.ClientStream); ok {
+		stream.CloseSend()
+	}
 	return trace.NewAggregate(localErr, remoteErr)
 }
 

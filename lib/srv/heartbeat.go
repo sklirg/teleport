@@ -267,6 +267,7 @@ func (h *Heartbeat) Run() error {
 		h.reset(HeartbeatStateInit)
 		h.checkTicker.Stop()
 	}()
+
 	for {
 		err := h.fetchAndAnnounce()
 		if err != nil {
@@ -330,6 +331,7 @@ func (h *Heartbeat) fetch() error {
 		h.reset(HeartbeatStateInit)
 		return trace.Wrap(err)
 	}
+
 	switch h.state {
 	// in case of successful state fetch, move to announce from init
 	case HeartbeatStateInit:

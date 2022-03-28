@@ -189,6 +189,9 @@ type Server struct {
 
 	// lockWatcher is the server's lock watcher.
 	lockWatcher *services.LockWatcher
+
+	// proxiedServiceUpdater updates a proxied service with the proxies it is connected to.
+	proxiedServiceUpdater *reversetunnel.ProxiedServiceUpdater
 }
 
 // GetClock returns server clock implementation
@@ -565,6 +568,14 @@ func SetX11ForwardingConfig(xc *x11.ServerConfig) ServerOption {
 	}
 }
 
+// SetProxiedServiceUpdater sets the ProxiedServiceUpdater.
+func SetProxiedServiceUpdater(updater *reversetunnel.ProxiedServiceUpdater) ServerOption {
+	return func(s *Server) error {
+		s.proxiedServiceUpdater = updater
+		return nil
+	}
+}
+
 // New returns an unstarted server
 func New(addr utils.NetAddr,
 	hostname string,
@@ -840,6 +851,11 @@ func (s *Server) getServerInfo() (types.Resource, error) {
 			server.SetRotation(*rotation)
 		}
 	}
+
+	if s.proxiedServiceUpdater != nil {
+		s.proxiedServiceUpdater.Update(server)
+	}
+
 	server.SetExpiry(s.clock.Now().UTC().Add(apidefaults.ServerAnnounceTTL))
 	server.SetPublicAddr(s.proxyPublicAddr.String())
 	server.SetPeerAddr(s.peerAddr)

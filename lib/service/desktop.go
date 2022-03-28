@@ -83,6 +83,8 @@ func (process *TeleportProcess) initWindowsDesktopServiceRegistered(log *logrus.
 		return trace.Wrap(err)
 	}
 
+	var updater *reversetunnel.ProxiedServiceUpdater
+
 	useTunnel := conn.UseTunnel()
 	// This service can run in 2 modes:
 	// 1. Reachable (by the proxy) - registers with auth server directly and
@@ -122,15 +124,16 @@ func (process *TeleportProcess) initWindowsDesktopServiceRegistered(log *logrus.
 		agentPool, err = reversetunnel.NewAgentPool(
 			process.ExitContext(),
 			reversetunnel.AgentPoolConfig{
-				Component:   teleport.ComponentWindowsDesktop,
-				HostUUID:    conn.ServerIdentity.ID.HostUUID,
-				Resolver:    conn.TunnelProxyResolver(),
-				Client:      conn.Client,
-				AccessPoint: accessPoint,
-				HostSigner:  conn.ServerIdentity.KeySigner,
-				Cluster:     conn.ServerIdentity.Cert.Extensions[utils.CertExtensionAuthority],
-				Server:      shtl,
-				FIPS:        process.Config.FIPS,
+				Component:             teleport.ComponentWindowsDesktop,
+				HostUUID:              conn.ServerIdentity.ID.HostUUID,
+				Resolver:              conn.TunnelProxyResolver(),
+				Client:                conn.Client,
+				AccessPoint:           accessPoint,
+				HostSigner:            conn.ServerIdentity.KeySigner,
+				Cluster:               conn.ServerIdentity.Cert.Extensions[utils.CertExtensionAuthority],
+				Server:                shtl,
+				FIPS:                  process.Config.FIPS,
+				ProxiedServiceUpdater: updater,
 			})
 		if err != nil {
 			return trace.Wrap(err)
@@ -144,6 +147,7 @@ func (process *TeleportProcess) initWindowsDesktopServiceRegistered(log *logrus.
 			}
 		}()
 		log.Info("Using a reverse tunnel to register and handle proxy connections")
+		updater = agentPool.GetProxiedServiceUpdater()
 	}
 
 	lockWatcher, err := services.NewLockWatcher(process.ExitContext(), services.LockWatcherConfig{
@@ -223,10 +227,11 @@ func (process *TeleportProcess) initWindowsDesktopServiceRegistered(log *logrus.
 			StaticHosts: cfg.WindowsDesktop.Hosts,
 			OnHeartbeat: process.onHeartbeat(teleport.ComponentWindowsDesktop),
 		},
-		LDAPConfig:           desktop.LDAPConfig(cfg.WindowsDesktop.LDAP),
-		DiscoveryBaseDN:      cfg.WindowsDesktop.Discovery.BaseDN,
-		DiscoveryLDAPFilters: cfg.WindowsDesktop.Discovery.Filters,
-		Hostname:             cfg.Hostname,
+		LDAPConfig:            desktop.LDAPConfig(cfg.WindowsDesktop.LDAP),
+		DiscoveryBaseDN:       cfg.WindowsDesktop.Discovery.BaseDN,
+		DiscoveryLDAPFilters:  cfg.WindowsDesktop.Discovery.Filters,
+		Hostname:              cfg.Hostname,
+		ProxiedServiceUpdater: updater,
 	})
 	if err != nil {
 		return trace.Wrap(err)

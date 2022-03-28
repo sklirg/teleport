@@ -78,6 +78,7 @@ import (
 	"github.com/gravitational/teleport/lib/multiplexer"
 	"github.com/gravitational/teleport/lib/plugin"
 	"github.com/gravitational/teleport/lib/proxy"
+	"github.com/gravitational/teleport/lib/proxy/clusterdial"
 	restricted "github.com/gravitational/teleport/lib/restrictedsession"
 	"github.com/gravitational/teleport/lib/reversetunnel"
 	"github.com/gravitational/teleport/lib/services"
@@ -1796,6 +1797,8 @@ func (process *TeleportProcess) initSSH() error {
 	})
 
 	var agentPool *reversetunnel.AgentPool
+	updater := reversetunnel.NewProxiedServiceUpdater()
+
 	var conn *Connector
 	var ebpf bpf.BPF
 	var rm restricted.Manager
@@ -1962,6 +1965,7 @@ func (process *TeleportProcess) initSSH() error {
 			regular.SetAllowTCPForwarding(cfg.SSH.AllowTCPForwarding),
 			regular.SetLockWatcher(lockWatcher),
 			regular.SetX11ForwardingConfig(cfg.SSH.X11),
+			regular.SetProxiedServiceUpdater(updater),
 		)
 		if err != nil {
 			return trace.Wrap(err)
@@ -2004,15 +2008,16 @@ func (process *TeleportProcess) initSSH() error {
 			agentPool, err = reversetunnel.NewAgentPool(
 				process.ExitContext(),
 				reversetunnel.AgentPoolConfig{
-					Component:   teleport.ComponentNode,
-					HostUUID:    conn.ServerIdentity.ID.HostUUID,
-					Resolver:    conn.TunnelProxyResolver(),
-					Client:      conn.Client,
-					AccessPoint: conn.Client,
-					HostSigner:  conn.ServerIdentity.KeySigner,
-					Cluster:     conn.ServerIdentity.Cert.Extensions[utils.CertExtensionAuthority],
-					Server:      s,
-					FIPS:        process.Config.FIPS,
+					Component:             teleport.ComponentNode,
+					HostUUID:              conn.ServerIdentity.ID.HostUUID,
+					Resolver:              conn.TunnelProxyResolver(),
+					Client:                conn.Client,
+					AccessPoint:           conn.Client,
+					HostSigner:            conn.ServerIdentity.KeySigner,
+					Cluster:               conn.ServerIdentity.Cert.Extensions[utils.CertExtensionAuthority],
+					Server:                s,
+					FIPS:                  process.Config.FIPS,
+					ProxiedServiceUpdater: updater,
 				})
 			if err != nil {
 				return trace.Wrap(err)
@@ -3005,7 +3010,8 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 			AccessCache:   accessPoint,
 			Listener:      listeners.proxy,
 			TLSConfig:     serverTLSConfig,
-			ClusterDialer: proxy.NewClusterDialer(tsrv),
+			ClusterDialer: clusterdial.NewClusterDialer(tsrv),
+			Log:           log,
 		})
 		if err != nil {
 			return trace.Wrap(err)
@@ -3254,11 +3260,11 @@ func (process *TeleportProcess) initProxyEndpoint(conn *Connector) error {
 	if alpnRouter != nil {
 		grpcServer = grpc.NewServer(
 			grpc.ChainUnaryInterceptor(
-				utils.GRPCServerUnaryErrorInterceptor ,
+				utils.GRPCServerUnaryErrorInterceptor,
 				proxyLimiter.UnaryServerInterceptor(),
 			),
 			grpc.ChainStreamInterceptor(
-				utils.GRPCServerStreamErrorInterceptor ,
+				utils.GRPCServerStreamErrorInterceptor,
 				proxyLimiter.StreamServerInterceptor,
 			),
 		)
@@ -3630,6 +3636,11 @@ func (process *TeleportProcess) initApps() {
 			return trace.Wrap(err)
 		}
 
+		var updater *reversetunnel.ProxiedServiceUpdater
+		if conn.UseTunnel() {
+			updater = reversetunnel.NewProxiedServiceUpdater()
+		}
+
 		// If this process connected through the web proxy, it will discover the
 		// reverse tunnel address correctly and store it in the connector.
 		//
@@ -3736,18 +3747,19 @@ func (process *TeleportProcess) initApps() {
 		}
 
 		appServer, err = app.New(process.ExitContext(), &app.Config{
-			DataDir:          process.Config.DataDir,
-			AuthClient:       conn.Client,
-			AccessPoint:      accessPoint,
-			Authorizer:       authorizer,
-			TLSConfig:        tlsConfig,
-			CipherSuites:     process.Config.CipherSuites,
-			HostID:           process.Config.HostUUID,
-			Hostname:         process.Config.Hostname,
-			GetRotation:      process.getRotation,
-			Apps:             applications,
-			ResourceMatchers: process.Config.Apps.ResourceMatchers,
-			OnHeartbeat:      process.onHeartbeat(teleport.ComponentApp),
+			DataDir:               process.Config.DataDir,
+			AuthClient:            conn.Client,
+			AccessPoint:           accessPoint,
+			Authorizer:            authorizer,
+			TLSConfig:             tlsConfig,
+			CipherSuites:          process.Config.CipherSuites,
+			HostID:                process.Config.HostUUID,
+			Hostname:              process.Config.Hostname,
+			GetRotation:           process.getRotation,
+			Apps:                  applications,
+			ResourceMatchers:      process.Config.Apps.ResourceMatchers,
+			OnHeartbeat:           process.onHeartbeat(teleport.ComponentApp),
+			ProxiedServiceUpdater: updater,
 		})
 		if err != nil {
 			return trace.Wrap(err)
@@ -3763,15 +3775,16 @@ func (process *TeleportProcess) initApps() {
 		agentPool, err = reversetunnel.NewAgentPool(
 			process.ExitContext(),
 			reversetunnel.AgentPoolConfig{
-				Component:   teleport.ComponentApp,
-				HostUUID:    conn.ServerIdentity.ID.HostUUID,
-				Resolver:    tunnelAddrResolver,
-				Client:      conn.Client,
-				Server:      appServer,
-				AccessPoint: accessPoint,
-				HostSigner:  conn.ServerIdentity.KeySigner,
-				Cluster:     clusterName,
-				FIPS:        process.Config.FIPS,
+				Component:             teleport.ComponentApp,
+				HostUUID:              conn.ServerIdentity.ID.HostUUID,
+				Resolver:              tunnelAddrResolver,
+				Client:                conn.Client,
+				Server:                appServer,
+				AccessPoint:           accessPoint,
+				HostSigner:            conn.ServerIdentity.KeySigner,
+				Cluster:               clusterName,
+				FIPS:                  process.Config.FIPS,
+				ProxiedServiceUpdater: updater,
 			})
 		if err != nil {
 			return trace.Wrap(err)

@@ -189,8 +189,11 @@ func (c *Client) sync() {
 	proxyWatcher, err := services.NewProxyWatcher(c.ctx, services.ProxyWatcherConfig{
 		ResourceWatcherConfig: services.ResourceWatcherConfig{
 			Component: teleport.Component(teleport.ComponentProxyPeer),
-			Client:    c.config.AccessPoint,
+			Client:    c.config.AuthClient,
 			Log:       c.config.Log,
+		},
+		ProxyDiffer: func(old, new types.Server) bool {
+			return old.GetPeerAddr() != new.GetPeerAddr()
 		},
 	})
 	if err != nil {
@@ -272,6 +275,17 @@ func (c *Client) updateConnections(proxies []types.Server) error {
 			continue
 		}
 
+		c.config.Log.Debugf("New connection to %s %s %p", conn.id, conn.addr, conn)
+		go func(conn *clientConn) {
+			for {
+				time.Sleep(5 * time.Second)
+				c.config.Log.Debugf("connection to state: %s pointer: %p", conn.GetState(), conn)
+				if conn.GetState() == connectivity.Shutdown {
+					return
+				}
+			}
+		}(conn)
+
 		toKeep[id] = conn
 	}
 	c.RUnlock()
@@ -345,7 +359,7 @@ func (c *Client) Shutdown() {
 	var wg sync.WaitGroup
 	for _, conn := range c.conns {
 		wg.Add(1)
-		go func() {
+		go func(conn *clientConn) {
 			defer wg.Done()
 
 			timeoutCtx, cancel := context.WithTimeout(context.Background(), c.config.GracefulShutdownTimeout)
@@ -364,7 +378,7 @@ func (c *Client) Shutdown() {
 					c.config.Log.Infof("proxy peer connection %+v close error: %+v", conn.id, err)
 				}
 			}
-		}()
+		}(conn)
 	}
 	wg.Wait()
 	c.cancel()
@@ -405,6 +419,10 @@ func (c *Client) stopConn(conn *clientConn) error {
 // The boolean returned in the second argument is intended for testing purposes,
 // to indicates whether the connection was cached or newly established.
 func (c *Client) dial(proxyIDs []string) (clientapi.ProxyService_DialNodeClient, bool, error) {
+	if len(proxyIDs) == 0 {
+		return nil, false, trace.BadParameter("unable to dial: no proxy ids given")
+	}
+
 	c.RLock()
 
 	// try to dial existing connections.
@@ -500,6 +518,7 @@ func (c *Client) connect(id string, proxyPeerAddr string) (*clientConn, error) {
 			Timeout:             peerTimeout,
 			PermitWithoutStream: true,
 		}),
+		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"round_robin"}`),
 	)
 	if err != nil {
 		c.metrics.reportTunnelError(errorNewTunnelDial)
