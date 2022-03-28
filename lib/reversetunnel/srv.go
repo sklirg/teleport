@@ -33,6 +33,7 @@ import (
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/limiter"
+	"github.com/gravitational/teleport/lib/proxy"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/sshca"
 	"github.com/gravitational/teleport/lib/sshutils"
@@ -114,6 +115,8 @@ type server struct {
 	// offlineThreshold is how long to wait for a keep alive message before
 	// marking a reverse tunnel connection as invalid.
 	offlineThreshold time.Duration
+
+	peerClient *proxy.Client
 }
 
 // DirectCluster is used to access cluster directly
@@ -305,8 +308,19 @@ func NewServer(cfg Config) (Server, error) {
 		offlineThreshold: offlineThreshold,
 	}
 
+	srv.peerClient, err = proxy.NewClient(proxy.ClientConfig{
+		Context:                 cfg.Context,
+		ID:                      srv.ID,
+		AuthClient:              srv.LocalAuthClient,
+		AccessPoint:             srv.LocalAccessPoint,
+		TLSConfig:               srv.ClientTLS,
+		Log:                     srv.log,
+		Clock:                   srv.Clock,
+		GracefulShutdownTimeout: defaults.DefaultGracefulShutdownTimeout,
+	})
+
 	for _, clusterInfo := range cfg.DirectClusters {
-		cluster, err := newlocalSite(srv, clusterInfo.Name, clusterInfo.Client)
+		cluster, err := newlocalSite(srv, clusterInfo.Name, clusterInfo.Client, srv.peerClient)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
@@ -564,12 +578,14 @@ func (s *server) Start() error {
 func (s *server) Close() error {
 	s.cancel()
 	s.proxyWatcher.Close()
+	s.peerClient.Stop()
 	return s.srv.Close()
 }
 
 func (s *server) Shutdown(ctx context.Context) error {
 	err := s.srv.Shutdown(ctx)
 	s.proxyWatcher.Close()
+	s.peerClient.Shutdown()
 	s.cancel()
 	return trace.Wrap(err)
 }

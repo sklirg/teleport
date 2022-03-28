@@ -24,6 +24,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/sshutils"
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/proxy"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
@@ -43,7 +44,7 @@ func TestLocalSiteOverlap(t *testing.T) {
 		},
 	}
 
-	site, err := newlocalSite(srv, "clustername", &mockLocalSiteClient{})
+	site, err := newlocalSite(srv, "clustername", &mockLocalSiteClient{}, &proxy.Client{})
 	require.NoError(t, err)
 
 	nodeID := uuid.NewString()

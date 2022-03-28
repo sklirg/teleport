@@ -411,6 +411,7 @@ func (t *proxySubsys) proxyToHost(
 		GetUserAgent: t.ctx.StartAgentChannel,
 		Address:      t.host,
 		ServerID:     serverID,
+		ProxyIDs:     server.GetProxyIDs(),
 		Principals:   principals,
 		ConnType:     types.NodeTunnel,
 	})

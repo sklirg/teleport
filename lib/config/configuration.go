@@ -691,13 +691,11 @@ func applyProxyConfig(fc *FileConfig, cfg *service.Config) error {
 		}
 		cfg.Proxy.MongoAddr = *addr
 	}
-	if fc.Proxy.PeerAddr != "" {
-		addr, err := utils.ParseHostPortAddr(fc.Proxy.PeerAddr, int(defaults.ProxyPeeringListenPort))
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		cfg.Proxy.PeerAddr = *addr
+	peerAddr, err := getProxyPeeringAddr(fc.Proxy.PeerAddr)
+	if err != nil {
+		log.Warnf("Unable to get proxy peering address. This will cause an issue when using the tunnel_strategy: proxy_peering")
 	}
+	cfg.Proxy.PeerAddr = *peerAddr
 
 	// This is the legacy format. Continue to support it forever, but ideally
 	// users now use the list format below.
@@ -862,6 +860,28 @@ func applyProxyConfig(fc *FileConfig, cfg *service.Config) error {
 	applyDefaultProxyListenerAddresses(cfg)
 
 	return nil
+}
+
+func getProxyPeeringAddr(addr string) (*utils.NetAddr, error) {
+	var (
+		netAddr *utils.NetAddr
+		err     error
+	)
+
+	if addr == "" {
+		ip, err := utils.GuessHostIP()
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		addr = ip.String()
+	}
+
+	netAddr, err = utils.ParseHostPortAddr(addr, int(defaults.ProxyPeeringListenPort))
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	return netAddr, nil
 }
 
 func getPostgresDefaultPort(cfg *service.Config) int {
