@@ -458,6 +458,25 @@ func TestFIDO2Login(t *testing.T) {
 			},
 		},
 		{
+			name:  "passwordless ambiguous user",
+			fido2: newFakeFIDO2(bio2),
+			setUP: bio2.setUP,
+			user:  "", // authenticator's choice
+			createAssertion: func() *wanlib.CredentialAssertion {
+				cp := *baseAssertion
+				cp.Response.AllowedCredentials = nil
+				cp.Response.UserVerification = protocol.VerificationRequired
+				return &cp
+			},
+			prompt: bio2,
+			assertResponse: func(t *testing.T, resp *wanpb.CredentialAssertionResponse) {
+				// The fake authenticator always picks the first credential.
+				// Let's assert just to make sure the reply is consistent.
+				assert.Equal(t, bio2.credentials[0].ID, resp.RawId, "RawId mismatch (want %q resident credential)", llamaName)
+				assert.Equal(t, llamaID, resp.Response.UserHandle, "UserHandle mismatch (want %q)", llamaName)
+			},
+		},
+		{
 			name:  "NOK passwordless no credentials",
 			fido2: newFakeFIDO2(bio1),
 			setUP: bio1.setUP,
@@ -469,20 +488,6 @@ func TestFIDO2Login(t *testing.T) {
 			},
 			prompt:  bio1,
 			wantErr: libfido2.ErrNoCredentials.Error(),
-		},
-		{
-			name:  "NOK passwordless ambiguous user",
-			fido2: newFakeFIDO2(bio2),
-			setUP: bio2.setUP,
-			user:  "", // >1 resident credential, can't pick unambiguous username.
-			createAssertion: func() *wanlib.CredentialAssertion {
-				cp := *baseAssertion
-				cp.Response.AllowedCredentials = nil
-				cp.Response.UserVerification = protocol.VerificationRequired
-				return &cp
-			},
-			prompt:  bio2,
-			wantErr: "explicit user required",
 		},
 		{
 			name:  "NOK passwordless unknown user",
@@ -587,7 +592,7 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 
 	const rpID = "example.com"
 	const origin = "https://example.com"
-	const user = ""
+	const user = "llama"
 
 	// auth1 is a FIDO2 authenticator without a PIN configured.
 	auth1 := mustNewFIDO2Device("/auth1", "" /* pin */, &libfido2.DeviceInfo{
@@ -597,6 +602,7 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 	pin1 := mustNewFIDO2Device("/pin1", "supersecretpin1", &libfido2.DeviceInfo{
 		Options: pinOpts,
 	}, &libfido2.Credential{
+		ID: []byte{1, 1, 1, 1},
 		User: libfido2.User{
 			ID:   []byte("alpacaID"),
 			Name: "alpaca",
@@ -606,9 +612,16 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 	bio1 := mustNewFIDO2Device("/bio1", "supersecretBIO1pin", &libfido2.DeviceInfo{
 		Options: bioOpts,
 	}, &libfido2.Credential{
+		ID: []byte{1, 1, 1, 2},
 		User: libfido2.User{
 			ID:   []byte("llamaID"),
 			Name: "llama",
+		},
+	}, &libfido2.Credential{
+		ID: []byte{1, 1, 1, 3},
+		User: libfido2.User{
+			ID:   []byte("alpacaID"),
+			Name: "alpaca",
 		},
 	})
 
@@ -643,6 +656,7 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 	tests := []struct {
 		name        string
 		fido2       *fakeFIDO2
+		user        string
 		assertion   *wanlib.CredentialAssertion
 		prompt      wancli.LoginPrompt
 		wantTouches int
@@ -662,8 +676,17 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 			wantTouches: 1,
 		},
 		{
-			name:        "Passwordless Bio requires two touches",
+			name:        "Passwordless Bio with implicit user requires single touch",
 			fido2:       newFakeFIDO2(bio1),
+			user:        "", // authenticator's choice
+			assertion:   pwdlessAssertion,
+			prompt:      bio1,
+			wantTouches: 1,
+		},
+		{
+			name:        "Passwordless Bio with explicit user requires two touches",
+			fido2:       newFakeFIDO2(bio1),
+			user:        user,
 			assertion:   pwdlessAssertion,
 			prompt:      bio1,
 			wantTouches: 2,
@@ -685,7 +708,7 @@ func TestFIDO2Login_PromptTouch(t *testing.T) {
 			defer cancel()
 
 			prompt := &countingPrompt{LoginPrompt: test.prompt}
-			_, _, err := wancli.FIDO2Login(ctx, origin, user, test.assertion, prompt)
+			_, _, err := wancli.FIDO2Login(ctx, origin, test.user, test.assertion, prompt)
 			require.NoError(t, err, "FIDO2Login errored")
 			assert.Equal(t, test.wantTouches, prompt.count, "FIDO2Login did an unexpected number of touch prompts")
 		})
@@ -1512,9 +1535,12 @@ func (f *fakeFIDO2Device) Assertion(
 
 	// Is our credential allowed?
 	foundCredential := false
+	var credID []byte
+	var userID []byte
 	for _, cred := range credentialIDs {
 		if bytes.Equal(cred, f.key.KeyHandle) {
 			foundCredential = true
+			credID = cred
 			break
 		}
 
@@ -1525,6 +1551,8 @@ func (f *fakeFIDO2Device) Assertion(
 		for _, resident := range f.credentials {
 			if bytes.Equal(cred, resident.ID) {
 				foundCredential = true
+				credID = resident.ID
+				userID = resident.User.ID
 				break
 			}
 		}
@@ -1545,6 +1573,8 @@ func (f *fakeFIDO2Device) Assertion(
 	switch {
 	case !explicitCreds && privilegedAccess && len(f.credentials) > 0:
 		// OK, at this point an authenticator picks a credential for the user.
+		credID = f.credentials[0].ID
+		userID = f.credentials[0].User.ID
 	case !explicitCreds:
 		return nil, libfido2.ErrNoCredentials
 	}
@@ -1552,6 +1582,8 @@ func (f *fakeFIDO2Device) Assertion(
 	return &libfido2.Assertion{
 		AuthDataCBOR: assertionAuthDataCBOR,
 		Sig:          assertionSig,
+		CredentialID: credID,
+		UserID:       userID,
 	}, nil
 }
 
