@@ -138,6 +138,9 @@ type WriteConfig struct {
 	// KubeProxyAddr is the public address of the proxy with its kubernetes
 	// port. KubeProxyAddr is only used when Format is FormatKubernetes.
 	KubeProxyAddr string
+	// KubeClusterName is the user-defined name of the kubernetes cluster.
+	// If left empty, it will be set to the name of the Teleport cluster.
+	KubeClusterName string
 	// OverwriteDestination forces all existing destination files to be
 	// overwritten. When false, user will be prompted for confirmation of
 	// overwrite first.
@@ -290,8 +293,15 @@ func Write(cfg WriteConfig) (filesWritten []string, err error) {
 			return nil, trace.Wrap(err)
 		}
 
+		// Append kubernetes cluster name to name of Teleport cluster
+		// if it is set.
+		kubernetesClusterName := cfg.Key.ClusterName
+		if cfg.KubeClusterName != "" {
+			kubernetesClusterName = fmt.Sprintf("%s-%s", kubernetesClusterName, cfg.KubeClusterName)
+		}
+
 		if err := kubeconfig.Update(cfg.OutputPath, kubeconfig.Values{
-			TeleportClusterName: cfg.Key.ClusterName,
+			TeleportClusterName: kubernetesClusterName,
 			ClusterAddr:         cfg.KubeProxyAddr,
 			Credentials:         cfg.Key,
 		}); err != nil {

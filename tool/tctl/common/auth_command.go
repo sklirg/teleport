@@ -683,6 +683,7 @@ func (a *AuthCommand) generateUserKeys(ctx context.Context, clusterAPI auth.Clie
 		Key:                  key,
 		Format:               a.outputFormat,
 		KubeProxyAddr:        a.proxyAddr,
+		KubeClusterName:      a.kubeCluster,
 		OverwriteDestination: a.signOverwrite,
 	})
 	if err != nil {
